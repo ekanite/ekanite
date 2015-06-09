@@ -1,9 +1,13 @@
 # Ekanite [![Circle CI](https://circleci.com/gh/ekanite/ekanite/tree/master.svg?style=svg)](https://circleci.com/gh/ekanite/ekanite/tree/master)
-*Ekanite* is a syslog server with built-in search. Its goal is to do one thing, and do it well -- receive log messages over the network and allow those messages to be searched. What it lacks in feature, it makes up for in focus. Built in [Go](http://www.golang.org), it has no external dependencies, which makes deployment easy. Features include:
+*Ekanite* is a syslog server with built-in search. Its goal is to do one thing, and do it well -- receive log messages over the network and allow those messages to be searched. What it lacks in feature, it makes up for in focus. Built in [Go](http://www.golang.org), it has no external dependencies, which makes deployment easy.
+
+Features include:
 
 - Full parsing of [RFC5424](http://tools.ietf.org/html/rfc5424) headers.
 - Log messages are indexed by parsed timestamp, if one is available. This means search results are presented in the order the messages occurred, not in the order they were received, ensuring sensible display even with delayed senders.
 - Automatic data-retention management. Ekanite deletes indexed log data older than a configurable time period.
+
+More to come.
 
 Building
 ------------
