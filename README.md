@@ -12,7 +12,8 @@ Tested on 64-bit Kubuntu 14.04.
     mkdir ~/ekanite # Or a directory of your choice.
     cd ~/ekanite
     export GOPATH=$PWD
-    go install ./...
+    go get github.com/ekanite/ekanite
+    go install github.com/ekanite/...
 
 Running
 ------------
