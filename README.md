@@ -39,5 +39,5 @@ syslog-ng looks like so:
     
 Searching the logs
 ------------
-Search support is pretty simple at the moment. Telnet to the query server (see the command line options) and enter a search term. The query language supported is the simple language supported by bleve, but a more sophisiticated query syntax will be supported soon.
+Search support is pretty simple at the moment. Telnet to the query server (see the command line options) and enter a search term. The query language supported is the simple language supported by [bleve](http://godoc.org/github.com/blevesearch/bleve#NewQueryStringQuery), but a more sophisiticated query syntax will be supported soon.
 
