@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/otoolep/ekanite/input"
+	"github.com/ekanite/ekanite/input"
 )
 
 const (

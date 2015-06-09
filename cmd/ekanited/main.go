@@ -14,8 +14,8 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/otoolep/ekanite"
-	"github.com/otoolep/ekanite/input"
+	"github.com/ekanite/ekanite"
+	"github.com/ekanite/ekanite/input"
 )
 
 var (

@@ -3,7 +3,7 @@ package ekanite
 import (
 	"fmt"
 
-	"github.com/otoolep/ekanite/input"
+	"github.com/ekanite/ekanite/input"
 )
 
 // Event is a log message that can be indexed.

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/otoolep/ekanite/input"
+	"github.com/ekanite/ekanite/input"
 )
 
 type TestIndexer struct {
