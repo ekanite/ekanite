@@ -3,6 +3,7 @@
 
 Features include:
 
+- Full text search of all received log messages.
 - Full parsing of [RFC5424](http://tools.ietf.org/html/rfc5424) headers.
 - Log messages are indexed by parsed timestamp, if one is available. This means search results are presented in the order the messages occurred, not in the order they were received, ensuring sensible display even with delayed senders.
 - Automatic data-retention management. Ekanite deletes indexed log data older than a configurable time period.
