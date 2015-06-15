@@ -48,6 +48,14 @@ func TestParser_ParseStatement(t *testing.T) {
 			},
 		},
 		{
+			s: `sshd and pamd`,
+			expr: &BinaryExpr{
+				Op:  AND,
+				LHS: &FieldExpr{Field: defaultField, Term: "sshd"},
+				RHS: &FieldExpr{Field: defaultField, Term: "pamd"},
+			},
+		},
+		{
 			s: `sshd OR pamd`,
 			expr: &BinaryExpr{
 				Op:  OR,
