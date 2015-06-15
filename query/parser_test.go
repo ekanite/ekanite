@@ -19,6 +19,7 @@ func TestParser_ParseQuery_Empty(t *testing.T) {
 }
 
 // Ensure the parser can parse strings into Query ASTs.
+// XXX Still missing tests for parenthesized queries.
 func TestParser_ParseStatement(t *testing.T) {
 	defaultField := "defField"
 
