@@ -113,7 +113,7 @@ func TestParser_ParseStatement(t *testing.T) {
 		{s: `GET AND`, err: `found 'EOF', expected FIELD or SEARCH TERM`},
 		{s: `GET AND NOT`, err: `found 'NOT', expected FIELD or SEARCH TERM`},
 		{s: `:500`, err: `found ':', expected FIELD or SEARCH TERM`},
-		{s: `GET (apache.status:404 OR apache.status:500`, err: `found EOF, expected )`},
+		{s: `GET (apache.status:404 OR apache.status:500`, err: `found 'EOF', expected )`},
 		{s: `GET (apache.status:404 OR apache.status:`, err: `found 'EOF', expected SEARCH TERM`},
 	}
 

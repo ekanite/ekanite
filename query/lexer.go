@@ -48,18 +48,16 @@ func (s *Lexer) Lex() (tok Token, lit string) {
 		return RPAREN, ")"
 	} else if ch == ':' {
 		return COLON, ":"
-	} else {
-		s.unread()
-		tok, lit := s.lexString()
-
-		// Check for keyword match.
-		if kw, ok := Lookup(lit); ok {
-			return kw, lit
-		}
-		return tok, lit
 	}
 
-	return ILLEGAL, string(ch)
+	s.unread()
+	tok, lit = s.lexString()
+
+	// Check for keyword match.
+	if kw, ok := Lookup(lit); ok {
+		return kw, lit
+	}
+	return tok, lit
 }
 
 // lexWhitespace consumes the current rune and all contiguous whitespace.
