@@ -24,7 +24,19 @@ Running
 ------------
 The daemon will be located in the ```$GOPATH/bin``` directory. Execute
 
-        ekanited -h
+    $ ekanited -h
+        ekanite [options]
+        -batchsize=300: Indexing batch size.
+        -batchtime=1000: Indexing batch timeout, in milliseconds.
+        -datadir="/var/opt/ekanite": Set data directory.
+        -diag="": expvar and pprof bind address in the form host:port. If not set, not started.
+        -maxpending=1000: Maximum pending index events.
+        -noreport=false: Do not report anonymous data on launch.
+        -numshards=16: Set number of shards per index.
+        -query="localhost:9950": TCP Bind address for query server in the form host:port.
+        -retention="168h": Data retention period. Minimum is 24 hours.
+        -tcp="": Syslog server TCP bind address in the form host:port. If not set, not started.
+        -udp="": Syslog server UDP bind address in the form host:port. If not set, not started.
 
 for command-line options.
 
