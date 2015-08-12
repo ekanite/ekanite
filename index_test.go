@@ -258,10 +258,14 @@ func TestIndex_IndexSimpleSearch(t *testing.T) {
 			Phrase: "Priority:CRITICAL",
 			IDs:    []string{"0000000000000000000000000000DEAD"},
 		},
-		// This doesn't return all lines because boolean requires at least 1 + search
 		{
 			Phrase: "-Priority:CRITICAL",
-			IDs:    []string{},
+			IDs: []string{
+				"00000000000000000000000000001234",
+				"0000000000000000000000000000ABCD",
+				"00000000000000000000000000005678",
+				"0000000000000000000000000000BEEF",
+			},
 		},
 		{
 			Phrase: "get",
