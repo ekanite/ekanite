@@ -51,10 +51,35 @@ Consult the RFC to learn what each of these fields is. The TIMESTAMP field must 
 syslog-ng looks like so:
 
     template Ekanite { template("<${PRI}>1 ${ISODATE} ${HOST} ${PROGRAM} ${PID} - $MSG"); template_escape(no) };
-    
+
 Searching the logs
 ------------
 Search support is pretty simple at the moment. Telnet to the query server (see the command line options) and enter a search term. The query language supported is the simple language supported by [bleve](http://godoc.org/github.com/blevesearch/bleve#NewQueryStringQuery), but a more sophisiticated query syntax, including searching for specific field values, will be supported soon.
+
+For example, below is an example search session, showing accesses to the login URL of a Wordpress site. The telnet clients connects to the query server and enters the string `login`
+
+```
+$ telnet 127.0.0.1 9950
+Trying 127.0.0.1...
+Connected to 127.0.0.1.
+Escape character is '^]'.
+login
+<134>0 2015-05-06T01:24:41.232890+00:00 fisher apache-access - - 104.140.83.221 - - [06/May/2015:01:24:40 +0000] "GET /wp-login.php?action=register HTTP/1.0" 200 206 "http://www.philipotoole.com/" "Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12.388 Version/12.17"
+<134>0 2015-05-06T01:24:41.232895+00:00 fisher apache-access - - 104.140.83.221 - - [06/May/2015:01:24:40 +0000] "GET /wp-login.php?action=register HTTP/1.1" 200 243 "http://www.philipotoole.com/wp-login.php?action=register" "Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12.388 Version/12.17"
+<134>0 2015-05-06T02:47:54.612953+00:00 fisher apache-access - - 184.68.20.22 - - [06/May/2015:02:47:51 +0000] "GET /wp-login.php HTTP/1.1" 200 243 "-" "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/24.0.1309.0 Safari/537.17"
+<134>0 2015-05-06T04:20:49.008609+00:00 fisher apache-access - - 193.104.41.186 - - [06/May/2015:04:20:46 +0000] "POST /wp-login.php HTTP/1.1" 200 206 "-" "Opera 10.00"
+<134>0 2015-05-05T23:50:17.025568+00:00 fisher apache-access - - 65.98.59.154 - - [05/May/2015:23:50:12 +0000] "GET /wp-login.php HTTP/1.0" 200 206 "-" "-"
+```
+
+Perhaps you only want `POST` accesses to that URL:
+
+```
+login -GET
+<134>0 2015-05-06T04:20:49.008609+00:00 fisher apache-access - - 193.104.41.186 - - [06/May/2015:04:20:46 +0000] "POST /wp-login.php HTTP/1.1" 200 206 "-" "Opera 10.00"
+```
+
+## Diagnostics
+If diagnostics are enabled via the `-diag` switch, basic statistics and diagnostics will be available at the specified `host:port`. Simply visit `http://host:port/debug/vars` to retrieve this information.
 
 ## Reporting
 Ekanite reports a small amount anonymous data to [Loggly](http://www.loggly.com), each time it is launched. This data is just the host operating system and system architecture and is only used to track the number of Ekanite deployments. Reporting can be disabled by passing `-noreport=true` to Ekanite at launch time.
