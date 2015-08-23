@@ -54,7 +54,6 @@ func NewBatcher(e EventIndexer, sz int, dur time.Duration, max int) *Batcher {
 }
 
 // Start starts the batching process.
-// XXX handle shutdown.
 func (b *Batcher) Start(errChan chan<- error) error {
 	go func() {
 		batch := make([]*Event, 0, b.size)
@@ -65,7 +64,7 @@ func (b *Batcher) Start(errChan chan<- error) error {
 			err := b.indexer.Index(batch)
 			if err != nil {
 				stats.Add("batchIndexedError", 1)
-				// handle error XXX
+				return
 			}
 			stats.Add("batchIndexed", 1)
 			stats.Add("eventsIndexed", int64(len(batch)))
@@ -73,7 +72,6 @@ func (b *Batcher) Start(errChan chan<- error) error {
 				errChan <- err
 			}
 			batch = make([]*Event, 0, b.size)
-
 		}
 
 		for {
