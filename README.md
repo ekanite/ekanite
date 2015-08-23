@@ -56,3 +56,6 @@ Searching the logs
 ------------
 Search support is pretty simple at the moment. Telnet to the query server (see the command line options) and enter a search term. The query language supported is the simple language supported by [bleve](http://godoc.org/github.com/blevesearch/bleve#NewQueryStringQuery), but a more sophisiticated query syntax, including searching for specific field values, will be supported soon.
 
+## Reporting
+Ekanite reports a small amount anonymous data to [Loggly](http://www.loggly.com), each time it is launched. This data is just the host operating system and system architecture and is only used to track the number of rqlite deployments. Reporting can be disabled by passing `-noreport=true` to rqlite at launch time.
+
