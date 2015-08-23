@@ -343,7 +343,7 @@ func (e *Engine) Index(events []*Event) error {
 	return nil
 }
 
-// Search performs a search. XXX ACCOUNT FOR TIME! USE MY AST!
+// Search performs a search.
 func (e *Engine) Search(query string) (<-chan string, error) {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
@@ -358,17 +358,17 @@ func (e *Engine) Search(query string) (<-chan string, error) {
 		for _, i := range e.indexes {
 			ids, err := i.Search(query)
 			if err != nil {
-				panic(fmt.Sprintf("error performing search: %s", err.Error()))
-				// XXX deal with error.
+				e.Logger.Println("error performing search:", err.Error())
+				break
 			}
 			for _, id := range ids {
 				b, err := i.Document(id)
 				if err != nil {
-					panic("error getting document")
-					// XXX deal with error
+					e.Logger.Println("error getting document:", err.Error())
+					break
 				}
 				stats.Add("docsIDsRetrived", 1)
-				c <- string(b) // XXX This is a mess.
+				c <- string(b) // There is excessive byte-slice-to-strings here.
 			}
 		}
 		close(c)
