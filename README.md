@@ -77,7 +77,7 @@ login
 <134>0 2015-05-05T23:50:17.025568+00:00 fisher apache-access - - 65.98.59.154 - - [05/May/2015:23:50:12 +0000] "GET /wp-login.php HTTP/1.0" 200 206 "-" "-"
 ```
 
-Perhaps you only want `POST` accesses to that URL:
+Perhaps you only want to search for `POST` accesses to that URL:
 
 ```
 login -GET
