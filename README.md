@@ -46,11 +46,17 @@ For now, for ekanite to accept logs, your syslog client must be configured such 
 
 Consult the RFC to learn what each of these fields is. The TIMESTAMP field must be in [RFC3339](http://www.ietf.org/rfc/rfc3339.txt) format.  Both [rsyslog](http://www.rsyslog.com/) and [syslog-ng](http://www.balabit.com/network-security/syslog-ng) support templating, which make it easy to format messages correctly. For example, an rsyslog template looks like so:
 
-    $template Ekanite,"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% - %msg%"
+```
+# Send messages to Ekanite over TCP using the template. Assumes Ekanite is listening on 127.0.0.1:5514
+$template Ekanite,"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% - %msg%"
+*.*             @@127.0.0.1:5514;EkaniteFormat
+```
 
 syslog-ng looks like so:
 
-    template Ekanite { template("<${PRI}>1 ${ISODATE} ${HOST} ${PROGRAM} ${PID} - $MSG"); template_escape(no) };
+```
+template Ekanite { template("<${PRI}>1 ${ISODATE} ${HOST} ${PROGRAM} ${PID} - $MSG"); template_escape(no) };
+```
 
 Searching the logs
 ------------
