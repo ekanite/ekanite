@@ -178,7 +178,7 @@ func Test_EndToEnd(t *testing.T) {
 
 		if err == nil && tt.expected != nil {
 			if len(results) != len(tt.expected) {
-				t.Fatalf("wrong number of results received for query, exp %d, got %d", len(tt.expected), len(results))
+				t.Fatalf("wrong number of results received for query '%s', exp %d, got %d", tt.query, len(tt.expected), len(results))
 			}
 
 			// Compare each result.
