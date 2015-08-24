@@ -352,15 +352,17 @@ func (e *Engine) Search(query string) (<-chan string, error) {
 	c := make(chan string, 1)
 
 	go func() {
-		// Sequentially search each index.
-		for _, i := range e.indexes {
-			ids, err := i.Search(query)
+		// Sequentially search each index, starting with the earliest in time.
+		// This could be done in parallel but more sorting would be required.
+
+		for i := len(e.indexes) - 1; i > 0; i-- {
+			ids, err := e.indexes[i].Search(query)
 			if err != nil {
 				e.Logger.Println("error performing search:", err.Error())
 				break
 			}
 			for _, id := range ids {
-				b, err := i.Document(id)
+				b, err := e.indexes[i].Document(id)
 				if err != nil {
 					e.Logger.Println("error getting document:", err.Error())
 					break

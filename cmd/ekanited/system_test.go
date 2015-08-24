@@ -239,7 +239,6 @@ func Test_AllInOrder(t *testing.T) {
 
 // Test_AllInOrderShards tests that log messages are returned in the correct order, across shards.
 func Test_AllInOrderShards(t *testing.T) {
-	t.Skip()
 	if testing.Short() {
 		t.Skip()
 	}
