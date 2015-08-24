@@ -85,7 +85,7 @@ login -GET
 ```
 
 ## Diagnostics
-If diagnostics are enabled via the `-diag` switch, basic statistics and diagnostics will be available at the specified `host:port`. Simply visit `http://host:port/debug/vars` to retrieve this information.
+Basic statistics and diagnostics are available. Visit `http://localhost:9951/debug/vars` to retrieve this information. The host and port can be changed via the `-diag` command-line option.
 
 ## Reporting
 Ekanite reports a small amount anonymous data to [Loggly](http://www.loggly.com), each time it is launched. This data is just the host operating system and system architecture and is only used to track the number of Ekanite deployments. Reporting can be disabled by passing `-noreport=true` to Ekanite at launch time.
