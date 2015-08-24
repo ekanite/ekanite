@@ -222,7 +222,7 @@ func Test_AllInOrder(t *testing.T) {
 	query := "password"
 	results, err := sys.s.Search(query)
 	if err != nil {
-		t.Errorf("failed to execute search query '%s': %s", query, err.Error())
+		t.Fatalf("failed to execute search query '%s': %s", query, err.Error())
 	}
 
 	if len(results) != len(lines) {
@@ -233,6 +233,50 @@ func Test_AllInOrder(t *testing.T) {
 	for i := range results {
 		if lines[i] != results[i] {
 			t.Errorf("result %d is wrong, exp: '%s', got: '%s'", i, lines[i], results[i])
+		}
+	}
+}
+
+// Test_AllInOrderShards tests that log messages are returned in the correct order, across shards.
+func Test_AllInOrderShards(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+	path := tempPath()
+	defer os.RemoveAll(path)
+
+	// Lines in order they should be returned in results.
+	lines := []string{
+		`<134>0 2015-05-05T23:50:17.025568+00:00 fisher apache-access - - 65.98.59.154 - - [05/May/2015:23:50:12 +0000] "GET /wp-login.php HTTP/1.0" 200 206 "-" "-"`,
+		`<134>0 2015-05-06T01:24:41.232890+00:00 fisher apache-access - - 104.140.83.221 - - [06/May/2015:01:24:40 +0000] "GET /wp-login.php?action=register HTTP/1.0" 200 206 "http://www.philipotoole.com/" "Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12.388 Version/12.17"`,
+		`<134>0 2015-05-06T01:24:41.232895+00:00 fisher apache-access - - 104.140.83.221 - - [06/May/2015:01:24:40 +0000] "GET /wp-login.php?action=register HTTP/1.1" 200 243 "http://www.philipotoole.com/wp-login.php?action=register" "Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12.388 Version/12.17"`,
+		`<134>0 2015-05-06T02:47:54.612953+00:00 fisher apache-access - - 184.68.20.22 - - [06/May/2015:02:47:51 +0000] "GET /wp-login.php HTTP/1.1" 200 243 "-" "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/24.0.1309.0 Safari/537.17"`,
+		`<134>0 2015-05-06T04:20:49.008609+00:00 fisher apache-access - - 193.104.41.186 - - [06/May/2015:04:20:46 +0000] "POST /wp-login.php HTTP/1.1" 200 206 "-" "Opera 10.00"`,
+	}
+
+	sys := NewSystem(path)
+	ingestConn := sys.IngestConn()
+	for _, l := range lines {
+		ln := l + "\n"
+		n, err := ingestConn.Write([]byte(ln))
+		if err != nil {
+			t.Fatalf("failed to write '%s' to Collector: %s", l, err.Error())
+		}
+		if n != len(ln) {
+			t.Fatalf("insufficient bytes written to Collector, exp: %d, wrote: %d", len(l), n)
+		}
+	}
+
+	sys.e.waitForCount(uint64(len(lines)))
+
+	query := "login"
+	results, err := sys.s.Search(query)
+	if err != nil {
+		t.Fatalf("failed to execute search query '%s': %s", query, err.Error())
+	}
+	for i := range results {
+		if lines[i] != results[i] {
+			t.Fatalf("results incorrect, expected:\n%s\n got:\n%s\n", strings.Join(lines, "\n"), strings.Join(results, "\n"))
 		}
 	}
 }
