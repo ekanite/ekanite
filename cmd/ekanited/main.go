@@ -10,8 +10,11 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime"
+	"runtime/pprof"
+	"syscall"
 	"time"
 
 	"github.com/ekanite/ekanite"
@@ -33,6 +36,8 @@ var indexMaxPending int
 var gomaxprocs int
 var numShards int
 var retentionPeriod string
+var cpuProfile string
+var memProfile string
 var noReport bool
 
 // Flag set
@@ -62,7 +67,9 @@ func main() {
 		diagIface       = fs.String("diag", "", "expvar and pprof bind address in the form host:port. If not set, not started.")
 		queryIface      = fs.String("query", DefaultQueryAddr, "TCP Bind address for query server in the form host:port.")
 		numShards       = fs.Int("numshards", DefaultNumShards, "Set number of shards per index.")
-		retentionPeriod = fs.String("retention", DefaultRetentionPeriod, "Data retention period. Minimum is 24 hours.")
+		retentionPeriod = fs.String("retention", DefaultRetentionPeriod, "Data retention period. Minimum is 24 hours")
+		cpuProfile      = fs.String("cpuprof", "", "Where to write CPU profiling data. Not written if not set")
+		memProfile      = fs.String("memprof", "", "Where to write memory profiling data. Not written if not set")
 		noReport        = fs.Bool("noreport", false, "Do not report anonymous data on launch.")
 	)
 	fs.Usage = printHelp
@@ -172,14 +179,68 @@ func main() {
 		log.Printf("UDP collector listening to %s", *tcpIface)
 	}
 
+	// Start profiling.
+	startProfile(*cpuProfile, *memProfile)
+
 	if !*noReport {
 		reportLaunch()
 	}
 
 	stats.Set("launch", time.Now().UTC())
 
-	// Spin forever
-	select {}
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
+	// Block until one of the signals above is received
+	select {
+	case <-signalCh:
+		log.Println("signal received, shutting down...")
+	}
+
+	stopProfile()
+}
+
+// prof stores the file locations of active profiles.
+var prof struct {
+	cpu *os.File
+	mem *os.File
+}
+
+// StartProfile initializes the cpu and memory profile, if specified.
+func startProfile(cpuprofile, memprofile string) {
+	if cpuprofile != "" {
+		f, err := os.Create(cpuprofile)
+		if err != nil {
+			log.Fatalf("cpuprofile: %v", err)
+		}
+		log.Printf("writing CPU profile to: %s\n", cpuprofile)
+		prof.cpu = f
+		pprof.StartCPUProfile(prof.cpu)
+	}
+
+	if memprofile != "" {
+		f, err := os.Create(memprofile)
+		if err != nil {
+			log.Fatalf("memprofile: %v", err)
+		}
+		log.Printf("writing memory profile to: %s\n", memprofile)
+		prof.mem = f
+		runtime.MemProfileRate = 4096
+	}
+
+}
+
+// StopProfile closes the cpu and memory profiles if they are running.
+func stopProfile() {
+	if prof.cpu != nil {
+		pprof.StopCPUProfile()
+		prof.cpu.Close()
+		log.Println("CPU profile stopped")
+	}
+	if prof.mem != nil {
+		pprof.Lookup("heap").WriteTo(prof.mem, 0)
+		prof.mem.Close()
+		log.Println("memory profile stopped")
+	}
 }
 
 func printHelp() {
