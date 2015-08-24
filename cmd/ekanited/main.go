@@ -52,6 +52,7 @@ const (
 	DefaultNumShards       = 16
 	DefaultRetentionPeriod = "168h"
 	DefaultQueryAddr       = "localhost:9950"
+	DefaultDiagsIface      = "localhost:9951"
 	DefaultTCPServer       = "localhost:5514"
 )
 
@@ -64,7 +65,7 @@ func main() {
 		indexMaxPending = fs.Int("maxpending", DefaultIndexMaxPending, "Maximum pending index events.")
 		tcpIface        = fs.String("tcp", DefaultTCPServer, "Syslog server TCP bind address in the form host:port. If empty, not started.")
 		udpIface        = fs.String("udp", "", "Syslog server UDP bind address in the form host:port. If not set, not started.")
-		diagIface       = fs.String("diag", "", "expvar and pprof bind address in the form host:port. If not set, not started.")
+		diagIface       = fs.String("diag", DefaultDiagsIface, "expvar and pprof bind address in the form host:port. If not set, not started.")
 		queryIface      = fs.String("query", DefaultQueryAddr, "TCP Bind address for query server in the form host:port.")
 		numShards       = fs.Int("numshards", DefaultNumShards, "Set number of shards per index.")
 		retentionPeriod = fs.String("retention", DefaultRetentionPeriod, "Data retention period. Minimum is 24 hours")
