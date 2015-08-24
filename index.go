@@ -189,7 +189,7 @@ func OpenIndex(path string) (*Index, error) {
 		}
 		s := NewShard(filepath.Join(path, fi.Name()))
 		if err := s.Open(); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("shard open fail: %s", err.Error())
 		}
 		shards = append(shards, s)
 	}
@@ -344,12 +344,12 @@ func (s *Shard) Open() error {
 		}
 		s.b, err = bleve.New(s.path, mapping)
 		if err != nil {
-			return err
+			return fmt.Errorf("bleve new: %s", err.Error())
 		}
 	} else {
 		s.b, err = bleve.Open(s.path)
 		if err != nil {
-			return err
+			return fmt.Errorf("bleve open: %s", err.Error())
 		}
 	}
 	return nil
