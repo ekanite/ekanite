@@ -91,5 +91,5 @@ Basic statistics and diagnostics are available. Visit `http://localhost:9951/deb
 Ekanite reports a small amount anonymous data to [Loggly](http://www.loggly.com), each time it is launched. This data is just the host operating system and system architecture and is only used to track the number of Ekanite deployments. Reporting can be disabled by passing `-noreport=true` to Ekanite at launch time.
 
 ## Project Status
-The project is actively developed, but much work remains around performance and scaling.
+The project is actively developed and is early stage software. Much work remains around performance and scaling.
 
