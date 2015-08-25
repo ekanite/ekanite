@@ -7,6 +7,7 @@ Features include:
 - Full parsing of [RFC5424](http://tools.ietf.org/html/rfc5424) headers.
 - Log messages are indexed by parsed timestamp, if one is available. This means search results are presented in the order the messages occurred, not in the order they were received, ensuring sensible display even with delayed senders.
 - Automatic data-retention management. Ekanite deletes indexed log data older than a configurable time period.
+- Not a [JVM](https://java.com/en/download/) in sight.
 
 Building
 ------------
@@ -40,23 +41,41 @@ for command-line options.
 
 Sending logs to Ekanite
 ------------
-For now, for ekanite to accept logs, your syslog client must be configured such that the log lines are [RFC5424](http://tools.ietf.org/html/rfc5424) compliant, and in the following format:
+For now, for Ekanite to accept logs, your syslog client must be configured such that the log lines are [RFC5424](http://tools.ietf.org/html/rfc5424) compliant, and in the following format:
 
     <PRI>VERSION TIMESTAMP HOSTNAME APP-NAME PROC-ID MSGID MSG"
 
-Consult the RFC to learn what each of these fields is. The TIMESTAMP field must be in [RFC3339](http://www.ietf.org/rfc/rfc3339.txt) format.  Both [rsyslog](http://www.rsyslog.com/) and [syslog-ng](http://www.balabit.com/network-security/syslog-ng) support templating, which make it easy to format messages correctly. For example, an rsyslog template looks like so:
+Consult the RFC to learn what each of these fields is. The TIMESTAMP field must be in [RFC3339](http://www.ietf.org/rfc/rfc3339.txt) format.  Both [rsyslog](http://www.rsyslog.com/) and [syslog-ng](http://www.balabit.com/network-security/syslog-ng) support templating, which make it **very easy** for those programs to format logs correctly and transmit the logs to Ekanite. Templates and installation instructions for both systems are below.
+
+**rsyslog**
 
 ```
 # Send messages to Ekanite over TCP using the template. Assumes Ekanite is listening on 127.0.0.1:5514
 $template Ekanite,"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% - %msg%"
 *.*             @@127.0.0.1:5514;EkaniteFormat
 ```
+Add this template to `/etc/rsyslog.d/23-ekanite.conf` and then restart rsyslog using the command `sudo service rsyslog restart`.
 
-syslog-ng looks like so:
+**syslog-ng**
 
 ```
+source s_ekanite {
+	system();	# Check which OS & collect system logs
+	internal();	# Collect syslog-ng logs
+};
 template Ekanite { template("<${PRI}>1 ${ISODATE} ${HOST} ${PROGRAM} ${PID} - $MSG"); template_escape(no) };
+destination ekanite_server {
+	tcp("127.0.0.1" port(5514) template(Ekanite));
+};
+
+log { 
+	source(s_ekanite); 
+	destination(d_ekanite); 
+};
 ```
+Add this template to `/etc/syslog-ng/syslog-ng.conf` and then restart syslog-ng using the command `/etc/init.d/syslog-ng restart`.
+
+With these changes in place rsyslog or syslog-ng will continue to send logs to any existing destination, and also forward the logs to Ekanite.
 
 Searching the logs
 ------------
@@ -83,6 +102,8 @@ Perhaps you only want to search for `POST` accesses to that URL:
 login -GET
 <134>0 2015-05-06T04:20:49.008609+00:00 fisher apache-access - - 193.104.41.186 - - [06/May/2015:04:20:46 +0000] "POST /wp-login.php HTTP/1.1" 200 206 "-" "Opera 10.00"
 ```
+
+A more sophisticated client program is planned.
 
 ## Diagnostics
 Basic statistics and diagnostics are available. Visit `http://localhost:9951/debug/vars` to retrieve this information. The host and port can be changed via the `-diag` command-line option.
