@@ -64,7 +64,7 @@ source s_ekanite {
 	internal();	# Collect syslog-ng logs
 };
 template Ekanite { template("<${PRI}>1 ${ISODATE} ${HOST} ${PROGRAM} ${PID} - $MSG"); template_escape(no) };
-destination ekanite_server {
+destination d_ekanite {
 	tcp("127.0.0.1" port(5514) template(Ekanite));
 };
 
