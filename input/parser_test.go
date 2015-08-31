@@ -92,3 +92,14 @@ func Test_FailedRFC5424Parsing(t *testing.T) {
 		}
 	}
 }
+
+func Benchmark_Parsing(b *testing.B) {
+	p := NewRFC5424Parser()
+	for n := 0; n < b.N; n++ {
+		m := p.Parse(`<134>0 2015-05-05T21:20:00.493320+00:00 fisher apache-access - - 173.247.206.174 - - [05/May/2015:21:19:52 +0000] "GET /2013/11/ HTTP/1.  1" 200 22056 "http://www.philipotoole.com/" "Wget/1.15 (linux-gnu)"`)
+		if m == nil {
+			panic("message failed to parse during benchmarking")
+		}
+
+	}
+}
