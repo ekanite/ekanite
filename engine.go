@@ -317,7 +317,7 @@ func (e *Engine) Index(events []*Event) error {
 					var err error
 					index, err = e.createIndexForReferenceTime(ev.ReferenceTime())
 					if err != nil || index == nil {
-						panic(fmt.Sprintf("failed to create index for %s", ev.ReferenceTime()))
+						panic(fmt.Sprintf("failed to create index for %s: %s", ev.ReferenceTime(), err))
 					}
 				}
 			}()
