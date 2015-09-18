@@ -14,6 +14,8 @@ import (
 	"time"
 
 	"github.com/blevesearch/bleve"
+	"github.com/blevesearch/bleve/analysis/analyzers/custom_analyzer"
+	"github.com/blevesearch/bleve/analysis/tokenizers/regexp_tokenizer"
 	"github.com/ekanite/ekanite/query"
 )
 
@@ -402,14 +404,15 @@ func buildIndexMapping() (*bleve.IndexMapping, error) {
 	err = indexMapping.AddCustomTokenizer("ekanite_tk",
 		map[string]interface{}{
 			"regexp": `[^\W_]+`,
-			"type":   `regexp`,
+			"type":   regexp_tokenizer.Name,
 		})
 	if err != nil {
 		return nil, err
 	}
+
 	err = indexMapping.AddCustomAnalyzer("ekanite",
 		map[string]interface{}{
-			"type":          `custom`,
+			"type":          custom_analyzer.Name,
 			"char_filters":  []interface{}{},
 			"tokenizer":     `ekanite_tk`,
 			"token_filters": []interface{}{`to_lower`},
