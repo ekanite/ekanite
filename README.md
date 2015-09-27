@@ -9,6 +9,8 @@ Features include:
 - Automatic data-retention management. Ekanite deletes indexed log data older than a configurable time period.
 - Not a [JVM](https://java.com/en/download/) in sight.
 
+Search is implemented using the [bleve](http://www.blevesearch.com/) search library.
+
 Building
 ------------
 Tested on 64-bit Kubuntu 14.04.
