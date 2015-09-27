@@ -9,7 +9,7 @@ Features include:
 - Automatic data-retention management. Ekanite deletes indexed log data older than a configurable time period.
 - Not a [JVM](https://java.com/en/download/) in sight.
 
-Search is implemented using the [bleve](http://www.blevesearch.com/) search library.
+Search is implemented using the [bleve](http://www.blevesearch.com/) search library. For some performance analysis of bleve, and of the sharding techniques used by Ekanite, check out [this post](http://www.philipotoole.com/increasing-bleve-performance-sharding/).
 
 Building
 ------------
