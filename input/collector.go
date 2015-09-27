@@ -2,6 +2,7 @@ package input
 
 import (
 	"bufio"
+	"crypto/tls"
 	"expvar"
 	"io"
 	"net"
@@ -33,7 +34,8 @@ type TCPCollector struct {
 	iface  string
 	parser *RFC5424Parser
 
-	addr net.Addr
+	addr      net.Addr
+	tlsConfig *tls.Config
 }
 
 // UDPCollector represents a network collector that accepts UDP packets.
@@ -43,11 +45,16 @@ type UDPCollector struct {
 }
 
 // NewCollector returns a network collector of the specified type, that will bind
-// to the given inteface on Start().
-func NewCollector(proto, iface string) Collector {
+// to the given inteface on Start(). If config is non-nil, a secure Collector will
+// be returned. Secure Collectors require the protocol be TCP.
+func NewCollector(proto, iface string, tlsConfig *tls.Config) Collector {
 	parser := NewRFC5424Parser()
 	if strings.ToLower(proto) == "tcp" {
-		return &TCPCollector{iface: iface, parser: parser}
+		return &TCPCollector{
+			iface:     iface,
+			parser:    parser,
+			tlsConfig: tlsConfig,
+		}
 	} else if strings.ToLower(proto) == "udp" {
 		addr, err := net.ResolveUDPAddr("udp", iface)
 		if err != nil {
@@ -61,7 +68,13 @@ func NewCollector(proto, iface string) Collector {
 
 // Start instructs the TCPCollector to bind to the interface and accept connections.
 func (s *TCPCollector) Start(c chan<- *Event) error {
-	ln, err := net.Listen("tcp", s.iface)
+	var ln net.Listener
+	var err error
+	if s.tlsConfig == nil {
+		ln, err = net.Listen("tcp", s.iface)
+	} else {
+		ln, err = tls.Listen("tcp", s.iface, s.tlsConfig)
+	}
 	s.addr = ln.Addr()
 
 	if err != nil {

@@ -158,7 +158,7 @@ func main() {
 
 	// Start TCP collector if requested.
 	if *tcpIface != "" {
-		collector := input.NewCollector("tcp", *tcpIface)
+		collector := input.NewCollector("tcp", *tcpIface, nil)
 		if collector == nil {
 			log.Fatalf("failed to created TCP collector bound to %s", *tcpIface)
 		}
@@ -170,7 +170,7 @@ func main() {
 
 	// Start UDP collector if requested.
 	if *udpIface != "" {
-		collector := input.NewCollector("udp", *udpIface)
+		collector := input.NewCollector("udp", *udpIface, nil)
 		if collector == nil {
 			log.Fatalf("failed to created UDP collector for to %s", *udpIface)
 		}
