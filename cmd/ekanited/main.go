@@ -2,9 +2,13 @@ package main
 
 import (
 	"bytes"
+	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
 	"expvar"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -29,6 +33,8 @@ var (
 var datadir string
 var tcpIface string
 var udpIface string
+var caPemPath string
+var caKeyPath string
 var queryIface string
 var batchSize int
 var batchTimeout int
@@ -66,6 +72,8 @@ func main() {
 		tcpIface        = fs.String("tcp", DefaultTCPServer, "Syslog server TCP bind address in the form host:port. If empty, not started.")
 		udpIface        = fs.String("udp", "", "Syslog server UDP bind address in the form host:port. If not set, not started.")
 		diagIface       = fs.String("diag", DefaultDiagsIface, "expvar and pprof bind address in the form host:port. If not set, not started.")
+		caPemPath       = fs.String("pem", "", "path to CA PEM file for TLS-enabled TCP server. If not set, TLS not activated")
+		caKeyPath       = fs.String("pem", "", "path to CA key file for TLS-enabled TCP server. If not set, TLS not activated")
 		queryIface      = fs.String("query", DefaultQueryAddr, "TCP Bind address for query server in the form host:port.")
 		numShards       = fs.Int("numshards", DefaultNumShards, "Set number of shards per index.")
 		retentionPeriod = fs.String("retention", DefaultRetentionPeriod, "Data retention period. Minimum is 24 hours")
@@ -158,7 +166,16 @@ func main() {
 
 	// Start TCP collector if requested.
 	if *tcpIface != "" {
-		collector := input.NewCollector("tcp", *tcpIface, nil)
+		var tlsConfig *tls.Config
+		if *caPemPath != "" && *caKeyPath != "" {
+			tlsConfig, err = newTLSConfig(*caPemPath, *caKeyPath)
+			if err != nil {
+				log.Fatalf("failed to configure TLS: %s", err.Error())
+			}
+			log.Printf("TLS successfully configured")
+		}
+
+		collector := input.NewCollector("tcp", *tcpIface, tlsConfig)
 		if collector == nil {
 			log.Fatalf("failed to created TCP collector bound to %s", *tcpIface)
 		}
@@ -198,6 +215,45 @@ func main() {
 	}
 
 	stopProfile()
+}
+
+func newTLSConfig(caPemPath, caKeyPath string) (*tls.Config, error) {
+	var config *tls.Config
+
+	caPem, err := ioutil.ReadFile(caPemPath)
+	if err != nil {
+		return nil, err
+	}
+	ca, err := x509.ParseCertificate(caPem)
+	if err != nil {
+		return nil, err
+	}
+
+	caKey, err := ioutil.ReadFile(caKeyPath)
+	if err != nil {
+		return nil, err
+	}
+	key, err := x509.ParsePKCS1PrivateKey(caKey)
+	if err != nil {
+		return nil, err
+	}
+	pool := x509.NewCertPool()
+	pool.AddCert(ca)
+
+	cert := tls.Certificate{
+		Certificate: [][]byte{caPem},
+		PrivateKey:  key,
+	}
+
+	config = &tls.Config{
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		Certificates: []tls.Certificate{cert},
+		ClientCAs:    pool,
+	}
+
+	config.Rand = rand.Reader
+
+	return config, nil
 }
 
 // prof stores the file locations of active profiles.
