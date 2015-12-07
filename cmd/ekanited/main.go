@@ -55,7 +55,7 @@ const (
 	DefaultBatchSize       = 300
 	DefaultBatchTimeout    = 1000
 	DefaultIndexMaxPending = 1000
-	DefaultNumShards       = 16
+	DefaultNumShards       = 4
 	DefaultRetentionPeriod = "168h"
 	DefaultQueryAddr       = "localhost:9950"
 	DefaultDiagsIface      = "localhost:9951"
