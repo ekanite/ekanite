@@ -160,6 +160,7 @@ func (e *Engine) Open() error {
 		}
 		log.Printf("engine opened index with %d shard(s) at %s", len(i.Shards), indexPath)
 		e.indexes = append(e.indexes, i)
+		sort.Sort(e.indexes)
 	}
 
 	e.wg.Add(1)
