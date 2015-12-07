@@ -183,13 +183,20 @@ func OpenIndex(path string) (*Index, error) {
 		return nil, err
 	}
 
-	// Open the shards.
-	shards := make([]*Shard, 0)
+	// Get the shard names in alpha order.
+	var names []string
 	for _, fi := range fis {
 		if !fi.IsDir() || strings.HasPrefix(fi.Name(), ".") {
 			continue
 		}
-		s := NewShard(filepath.Join(path, fi.Name()))
+		names = append(names, fi.Name())
+	}
+	sort.Strings(names)
+
+	// Open the shards.
+	shards := make([]*Shard, 0)
+	for _, name := range names {
+		s := NewShard(filepath.Join(path, name))
 		if err := s.Open(); err != nil {
 			return nil, fmt.Errorf("shard open fail: %s", err.Error())
 		}
