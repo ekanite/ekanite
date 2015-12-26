@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"bufio"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -320,42 +319,17 @@ func NewServer(addr string, e *testEngine) *testServer {
 }
 
 // Search performs the given search and returns the log lines in a slice.
-func (s *testServer) Search(query string) ([]string, error) {
-	conn, err := net.Dial("tcp", s.Addr().String())
+func (s *testServer) Search(query string) (resultSlice []string, err error) {
+	resultSet, err := s.Searcher.Search(query)
+
 	if err != nil {
-		panic("unable to connect to query server")
-	}
-
-	n, err := conn.Write([]byte(query + "\n"))
-	if err != nil {
-		return nil, err
-	}
-	if n != len(query)+1 {
-		return nil, fmt.Errorf("incorrect number of bytes written to query server, exp: %d, wrote: %d", len(query)+1, n)
-	}
-
-	var firstNewline bool
-	results := make([]string, 0)
-	connbuf := bufio.NewReader(conn)
-	for {
-		result, err := connbuf.ReadString('\n')
-		if err != nil {
-			return nil, err
+		return
+	} else {
+		for v := range resultSet {
+			resultSlice = append(resultSlice, v)
 		}
-		if result == "\n" {
-			if firstNewline {
-				// No more results.
-				break
-			}
-			firstNewline = true
-			continue
-		} else {
-			firstNewline = false
-		}
-		results = append(results, strings.Trim(result, "\n"))
 	}
-
-	return results, nil
+	return
 }
 
 type testCollector struct {

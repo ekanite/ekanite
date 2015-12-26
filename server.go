@@ -19,7 +19,7 @@ type Searcher interface {
 // Server serves query client connections.
 type Server struct {
 	iface    string
-	searcher Searcher
+	Searcher Searcher
 	addr     net.Addr
 	template *template.Template
 
@@ -30,7 +30,7 @@ type Server struct {
 func NewServer(iface string, searcher Searcher) *Server {
 	return &Server{
 		iface:    iface,
-		searcher: searcher,
+		Searcher: searcher,
 		Logger:   log.New(os.Stderr, "[server] ", log.LstdFlags),
 	}
 }
@@ -89,7 +89,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		s.Logger.Printf("executing query '%s'", userQuery)
 
-		resultSet, err := s.searcher.Search(userQuery)
+		resultSet, err := s.Searcher.Search(userQuery)
 		var resultSlice []string
 
 		if err != nil {
