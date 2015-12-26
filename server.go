@@ -1,11 +1,11 @@
 package ekanite
 
 import (
-	"bufio"
+	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"os"
-	"strings"
 )
 
 type Searcher interface {
@@ -37,18 +37,10 @@ func (s *Server) Start() error {
 	if err != nil {
 		return err
 	}
-
 	s.addr = ln.Addr()
+	http.HandleFunc("/", handler)
+	go http.Serve(ln, nil)
 
-	go func() {
-		for {
-			conn, err := ln.Accept()
-			if err != nil {
-				continue
-			}
-			go s.handleConnection(conn)
-		}
-	}()
 	return nil
 }
 
@@ -57,37 +49,6 @@ func (s *Server) Addr() net.Addr {
 	return s.addr
 }
 
-func (s *Server) handleConnection(conn net.Conn) {
-	defer func() {
-		conn.Close()
-		s.Logger.Printf("connection from %s closed", conn.RemoteAddr())
-	}()
-	s.Logger.Printf("new connection from %s", conn.RemoteAddr())
-
-	reader := bufio.NewReader(conn)
-
-	for {
-		b, err := reader.ReadString('\n')
-		if err != nil {
-			conn.Close()
-			return
-		} else {
-			query := strings.Trim(b, "\r\n")
-			if query == "" {
-				continue
-			}
-
-			s.Logger.Printf("executing query '%s'", query)
-			c, err := s.searcher.Search(query)
-			if err != nil {
-				conn.Write([]byte(err.Error()))
-			} else {
-				for s := range c {
-					conn.Write([]byte(s + "\n"))
-				}
-			}
-			// Send two newlines to indicate end-of-results.
-			conn.Write([]byte("\n\n"))
-		}
-	}
+func handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hi there! %s", r.URL.Path[1:])
 }
