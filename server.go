@@ -207,7 +207,7 @@ margin: 20px 20px 20px 0;
 <body>
 
 	<h2>{{ $.Headline }}</h2>
-	<div id="help">Query language reference: <a href="http://godoc.org/github.com/blevesearch/bleve#NewQueryStringQuery">bleve</a></div>
+	<div id="help">Query language reference: <a href="http://www.blevesearch.com/docs/Query-String-Query/">Bleve Query Strings</a></div>
 	<form action="/" method="POST">
     <textarea name="query" cols="100" rows="2"></textarea>
     <br>
