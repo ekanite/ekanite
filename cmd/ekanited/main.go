@@ -69,12 +69,12 @@ func main() {
 		batchSize       = fs.Int("batchsize", DefaultBatchSize, "Indexing batch size.")
 		batchTimeout    = fs.Int("batchtime", DefaultBatchTimeout, "Indexing batch timeout, in milliseconds.")
 		indexMaxPending = fs.Int("maxpending", DefaultIndexMaxPending, "Maximum pending index events.")
-		tcpIface        = fs.String("tcp", DefaultTCPServer, "Syslog server TCP bind address in the form host:port. If empty, not started.")
+		tcpIface        = fs.String("tcp", DefaultTCPServer, "Syslog server TCP bind address in the form host:port. To disable set to empty string.")
 		udpIface        = fs.String("udp", "", "Syslog server UDP bind address in the form host:port. If not set, not started.")
 		diagIface       = fs.String("diag", DefaultDiagsIface, "expvar and pprof bind address in the form host:port. If not set, not started.")
 		caPemPath       = fs.String("tlspem", "", "path to CA PEM file for TLS-enabled TCP server. If not set, TLS not activated")
 		caKeyPath       = fs.String("tlskey", "", "path to CA key file for TLS-enabled TCP server. If not set, TLS not activated")
-		queryIface      = fs.String("query", DefaultQueryAddr, "TCP Bind address for query server in the form host:port.")
+		queryIface      = fs.String("query", DefaultQueryAddr, "TCP Bind address for query server in the form host:port. To disable set to empty string")
 		numShards       = fs.Int("numshards", DefaultNumShards, "Set number of shards per index.")
 		retentionPeriod = fs.String("retention", DefaultRetentionPeriod, "Data retention period. Minimum is 24 hours")
 		cpuProfile      = fs.String("cpuprof", "", "Where to write CPU profiling data. Not written if not set")
@@ -128,15 +128,17 @@ func main() {
 	log.Printf("engine opened with shard number of %d, retention period of %s",
 		engine.NumShards, engine.RetentionPeriod)
 
-	// Start the query server.
-	server := ekanite.NewServer(*queryIface, engine)
-	if server == nil {
-		log.Fatal("failed to create query server")
+	// Start the simple query server if requested.
+	if *queryIface != "" {
+		server := ekanite.NewServer(*queryIface, engine)
+		if server == nil {
+			log.Fatal("failed to create query server")
+		}
+		if err := server.Start(); err != nil {
+			log.Fatalf("failed to start query server: %s", err.Error())
+		}
+		log.Printf("query server listening to %s", *queryIface)
 	}
-	if err := server.Start(); err != nil {
-		log.Fatalf("failed to start query server: %s", err.Error())
-	}
-	log.Printf("query server listening to %s", *queryIface)
 
 	// Create and start the batcher.
 	batcherTimeout := time.Duration(*batchTimeout) * time.Millisecond
