@@ -2,13 +2,9 @@ package ekanite
 
 import (
 	"os"
-	"reflect"
 	"sort"
 	"testing"
 	"time"
-
-	"github.com/blevesearch/bleve"
-	"github.com/ekanite/ekanite/query"
 )
 
 type testDoc struct {
@@ -441,26 +437,4 @@ func TestShard_Index(t *testing.T) {
 	}
 
 	s.Close()
-}
-
-func Test_bleveQueryFromExpr(t *testing.T) {
-	tests := []struct {
-		expr  query.Expr
-		query bleve.Query
-	}{
-		{
-			&query.FieldExpr{Field: "SearchField", Term: "theTerm"},
-			bleve.NewPhraseQuery([]string{"theTerm"}, "SearchField"),
-		},
-	}
-
-	for _, tt := range tests {
-		q, err := bleveQueryFromExpr(tt.expr)
-		if err != nil {
-			t.Fatalf("error transforming Ekanite query to bleve query: %s", err.Error())
-		}
-		if !reflect.DeepEqual(tt.query, q) {
-			t.Fatalf("bleve query is not correct, exp: %v, got: %v", tt.query, q)
-		}
-	}
 }
