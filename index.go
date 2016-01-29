@@ -16,7 +16,6 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/analysis/analyzers/custom_analyzer"
 	"github.com/blevesearch/bleve/analysis/tokenizers/regexp_tokenizer"
-	"github.com/ekanite/ekanite/query"
 )
 
 const (
@@ -452,26 +451,4 @@ func buildIndexMapping() (*bleve.IndexMapping, error) {
 	indexMapping.DefaultMapping = articleMapping
 
 	return indexMapping, nil
-}
-
-func bleveQueryFromExpr(expr query.Expr) (bleve.Query, error) {
-	if e, ok := expr.(*query.FieldExpr); ok {
-		return bleve.NewPhraseQuery([]string{e.Term}, e.Field), nil
-	} else if e, ok := expr.(*query.BinaryExpr); ok {
-		lhs, err := bleveQueryFromExpr(e.LHS)
-		if err != nil {
-			return nil, err
-		}
-		rhs, err := bleveQueryFromExpr(e.RHS)
-		if err != nil {
-			return nil, err
-		}
-		if e.Op == query.AND {
-			return bleve.NewConjunctionQuery([]bleve.Query{lhs, rhs}), nil
-		} else if e.Op == query.OR {
-			return bleve.NewDisjunctionQuery([]bleve.Query{lhs, rhs}), nil
-		}
-	}
-
-	return nil, nil
 }
