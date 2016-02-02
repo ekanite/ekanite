@@ -182,7 +182,7 @@ func OpenIndex(path string) (*Index, error) {
 		return nil, err
 	}
 
-	// Get the shard names in alpha order.
+	// Get the shard names in alphabetical order.
 	var names []string
 	for _, fi := range fis {
 		if !fi.IsDir() || strings.HasPrefix(fi.Name(), ".") {
