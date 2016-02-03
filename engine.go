@@ -156,8 +156,7 @@ func (e *Engine) Open() error {
 		indexPath := filepath.Join(e.path, fi.Name())
 		i, err := OpenIndex(indexPath)
 		if err != nil {
-			log.Printf("engine failed to open at index %s: %s", indexPath, err.Error())
-			return err
+			return fmt.Errorf("engine failed to open at index %s: %s", indexPath, err.Error())
 		}
 		log.Printf("engine opened index with %d shard(s) at %s", len(i.Shards), indexPath)
 		e.indexes = append(e.indexes, i)
