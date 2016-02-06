@@ -27,19 +27,40 @@ Running
 ------------
 The daemon will be located in the ```$GOPATH/bin``` directory. Execute
 
-    $ ekanited -h
-        ekanite [options]
-        -batchsize=300: Indexing batch size.
-        -batchtime=1000: Indexing batch timeout, in milliseconds.
-        -datadir="/var/opt/ekanite": Set data directory.
-        -diag="": expvar and pprof bind address in the form host:port. If not set, not started.
-        -maxpending=1000: Maximum pending index events.
-        -noreport=false: Do not report anonymous data on launch.
-        -numshards=16: Set number of shards per index.
-        -query="localhost:9950": TCP Bind address for query server in the form host:port.
-        -retention="168h": Data retention period. Minimum is 24 hours.
-        -tcp="": Syslog server TCP bind address in the form host:port. If not set, not started.
-        -udp="": Syslog server UDP bind address in the form host:port. If not set, not started.
+```
+$ ekanited -h
+ekanite [options]
+  -batchsize int
+        Indexing batch size (default 300)
+  -batchtime int
+        Indexing batch timeout, in milliseconds (default 1000)
+  -cpuprof string
+        Where to write CPU profiling data. Not written if not set
+  -datadir string
+        Set data directory (default "/var/opt/ekanite")
+  -diag string
+        expvar and pprof bind address in the form host:port. If not set, not started (default "localhost:9951")
+  -maxpending int
+        Maximum pending index events (default 1000)
+  -memprof string
+        Where to write memory profiling data. Not written if not set
+  -noreport
+        Do not report anonymous data on launch
+  -numshards int
+        Set number of shards per index (default 4)
+  -query string
+        TCP Bind address for query server in the form host:port. To disable set to empty string (default "localhost:9950")
+  -retention string
+        Data retention period. Minimum is 24 hours (default "168h")
+  -tcp string
+        Syslog server TCP bind address in the form host:port. To disable set to empty string (default "localhost:5514")
+  -tlskey string
+        path to CA key file for TLS-enabled TCP server. If not set, TLS not activated
+  -tlspem string
+        path to CA PEM file for TLS-enabled TCP server. If not set, TLS not activated
+  -udp string
+        Syslog server UDP bind address in the form host:port. If not set, not started
+```
 
 for command-line options.
 
