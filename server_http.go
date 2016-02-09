@@ -67,7 +67,13 @@ func (s *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" || r.Method == "HEAD" {
 		// HEAD is conveniently supported by net/http without further action
-		serveIndex(s, w, r)
+		err := serveIndex(s, w, r)
+
+		if err != nil {
+			s.Logger.Print("Error executing template: ", err)
+			http.Error(w, "Error executing template: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
 	} else if r.Method == "POST" {
 		err := r.ParseForm()
 		if err != nil {
@@ -122,7 +128,7 @@ func (s *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // serveIndex serves the plain index for the GET request and POST failovers
-func serveIndex(s *HttpServer, w http.ResponseWriter, r *http.Request) {
+func serveIndex(s *HttpServer, w http.ResponseWriter, r *http.Request) error {
 	data := struct {
 		Title         string
 		Headline      string
@@ -138,8 +144,10 @@ func serveIndex(s *HttpServer, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.template.Execute(w, data); err != nil {
-		s.Logger.Print("Error executing template: ", err)
+		return err
 	}
+
+	return nil
 }
 
 // dontCache sets necessary headers to avoid client and intermediate caching of response
