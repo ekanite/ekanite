@@ -145,12 +145,12 @@ func main() {
 	if *queryIfaceHttp != "" {
 		server := ekanite.NewHttpServer(*queryIfaceHttp, engine)
 		if server == nil {
-			log.Fatal("failed to create http query server")
+			log.Fatal("failed to create HTTP query server")
 		}
 		if err := server.Start(); err != nil {
-			log.Fatalf("failed to start http query server: %s", err.Error())
+			log.Fatalf("failed to start HTTP query server: %s", err.Error())
 		}
-		log.Printf("http query server listening to %s", *queryIfaceHttp)
+		log.Printf("HTTP query server listening to %s", *queryIfaceHttp)
 	}
 
 	// Create and start the batcher.
