@@ -92,10 +92,10 @@ func (s *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			s.Logger.Printf("Error executing query: '%s'", err)
 			http.Error(w, "Error executing query: "+err.Error(), http.StatusInternalServerError)
 			return
-		} else {
-			for s := range resultSet {
-				resultSlice = append(resultSlice, s)
-			}
+		}
+
+		for s := range resultSet {
+			resultSlice = append(resultSlice, s)
 		}
 
 		data := struct {
