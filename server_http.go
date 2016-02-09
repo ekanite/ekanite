@@ -35,7 +35,6 @@ func NewHttpServer(iface string, searcher Searcher) *HttpServer {
 
 // Start instructs the Server to bind to the interface and accept connections.
 func (s *HttpServer) Start() error {
-
 	ln, err := net.Listen("tcp", s.iface)
 	if err != nil {
 		return err
@@ -64,15 +63,12 @@ func (s *HttpServer) Addr() net.Addr {
 
 // ServeHTTP implements a http.Handler, serving the query interface for Ekanite
 func (s *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
 	dontCache(w, r)
 
 	if r.Method == "GET" || r.Method == "HEAD" {
-		//HEAD is conveniently supported by net/http without further action
+		// HEAD is conveniently supported by net/http without further action
 		serveIndex(s, w, r)
-
 	} else if r.Method == "POST" {
-
 		err := r.ParseForm()
 		if err != nil {
 			s.Logger.Printf("Error parsing form '%s'", err)
@@ -144,12 +140,10 @@ func serveIndex(s *HttpServer, w http.ResponseWriter, r *http.Request) {
 	if err := s.template.Execute(w, data); err != nil {
 		s.Logger.Print("Error executing template: ", err)
 	}
-
 }
 
 // dontCache sets necessary headers to avoid client and intermediate caching of response
 func dontCache(w http.ResponseWriter, r *http.Request) {
-
 	w.Header().Set("Expires", time.Unix(0, 0).Format(time.RFC1123))
 	w.Header().Set("Last-Modified", time.Now().Format(time.RFC1123))
 	w.Header().Set("Cache-Control", "private, no-store, max-age=0, no-cache, must-revalidate, post-check=0, pre-check=0")
