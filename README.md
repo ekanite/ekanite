@@ -104,15 +104,15 @@ With these changes in place rsyslog or syslog-ng will continue to send logs to a
 
 Searching the logs
 ------------
-Search support is pretty simple at the moment. Telnet to the query server (see the command line options) and enter a search term. The query language supported is the simple language supported by [bleve](http://godoc.org/github.com/blevesearch/bleve#NewQueryStringQuery), but a more sophisiticated query syntax, including searching for specific field values, may be supported soon.
+Search support is pretty simple at the moment. Open the query server address in your web browser of choice (see the command 
+line options) and enter a search term. The query language supported is the simple language supported by 
+[bleve](http://www.blevesearch.com/docs/Query-String-Query/), but a more sophisiticated query syntax, including searching for 
+specific field values, may be supported soon.
 
-For example, below is an example search session, showing accesses to the login URL of a Wordpress site. The telnet clients connects to the query server and enters the string `login`
+Below are example queries, showing accesses to the login URL of a Wordpress site. The browser connects to the query server and 
+sends the query string `login` on behalf of the user.
 
 ```
-$ telnet 127.0.0.1 9950
-Trying 127.0.0.1...
-Connected to 127.0.0.1.
-Escape character is '^]'.
 login
 <134>0 2015-05-05T23:50:17.025568+00:00 fisher apache-access - - 65.98.59.154 - - [05/May/2015:23:50:12 +0000] "GET /wp-login.php HTTP/1.0" 200 206 "-" "-"
 <134>0 2015-05-06T01:24:41.232890+00:00 fisher apache-access - - 104.140.83.221 - - [06/May/2015:01:24:40 +0000] "GET /wp-login.php?action=register HTTP/1.0" 200 206 "http://www.philipotoole.com/" "Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12.388 Version/12.17"
