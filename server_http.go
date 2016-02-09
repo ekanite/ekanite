@@ -166,36 +166,36 @@ const templateSource string = `
 <meta charset="utf-8" />
 <title>{{ $.Title }}</title>
 <style type="text/css"> 
-body, h3 {
-margin: 50px;
-font-family: sans-serif;
-font-size: 13px;
+body, h2 {
+	margin: 50px;
+	font-family: sans-serif;
+	font-size: 13px;
 }
-h3 {
-font-size: 15px;
+h2 {
+	font-size: 15px;
 }
 .button {
-background: #3498db;
-background-image: linear-gradient(to bottom, #3498db, #2980b9);
-border-radius: 4px;
-font-family: sans-serif;
-color: #ffffff;
-font-size: 15px;
-padding: 10px 20px 10px 20px;
-margin-bottom: 20px;
-text-decoration: none;
+	background: #3498db;
+	background-image: linear-gradient(to bottom, #3498db, #2980b9);
+	border-radius: 4px;
+	font-family: sans-serif;
+	color: #ffffff;
+	font-size: 15px;
+	padding: 10px 20px 10px 20px;
+	margin-bottom: 20px;
+	text-decoration: none;
 }
 hr {
 	margin-bottom: 10px;
 	margin-top: 10px;
 }
 .button:hover {
-background: #3cb0fd;
-background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
-text-decoration: none;
+	background: #3cb0fd;
+	background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
+	text-decoration: none;
 }
 textarea {
-margin: 20px 20px 20px 0;
+	margin: 20px 20px 20px 0;
 }
 </style>
 </head>
