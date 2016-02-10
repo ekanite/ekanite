@@ -29,7 +29,7 @@ The daemon will be located in the ```$GOPATH/bin``` directory. Execute
 
 ```
 $ ekanited -h
-ekanite [options]
+ekanited [options]
   -batchsize int
         Indexing batch size (default 300)
   -batchtime int
@@ -50,6 +50,8 @@ ekanite [options]
         Set number of shards per index (default 4)
   -query string
         TCP Bind address for query server in the form host:port. To disable set to empty string (default "localhost:9950")
+  -queryhttp string
+        TCP Bind address for http query server in the form host:port. To disable set to empty string (default "localhost:8080")
   -retention string
         Data retention period. Minimum is 24 hours (default "168h")
   -tcp string

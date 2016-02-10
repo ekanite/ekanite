@@ -58,6 +58,7 @@ const (
 	DefaultNumShards       = 4
 	DefaultRetentionPeriod = "168h"
 	DefaultQueryAddr       = "localhost:9950"
+	DefaultHTTPQueryAddr   = "localhost:8080"
 	DefaultDiagsIface      = "localhost:9951"
 	DefaultTCPServer       = "localhost:5514"
 )
@@ -75,7 +76,7 @@ func main() {
 		caPemPath       = fs.String("tlspem", "", "path to CA PEM file for TLS-enabled TCP server. If not set, TLS not activated")
 		caKeyPath       = fs.String("tlskey", "", "path to CA key file for TLS-enabled TCP server. If not set, TLS not activated")
 		queryIface      = fs.String("query", DefaultQueryAddr, "TCP Bind address for query server in the form host:port. To disable set to empty string")
-		queryIfaceHttp  = fs.String("queryhttp", "", "TCP Bind address for http query server in the form host:port. To disable set to empty string")
+		queryIfaceHttp  = fs.String("queryhttp", DefaultHTTPQueryAddr, "TCP Bind address for http query server in the form host:port. To disable set to empty string")
 		numShards       = fs.Int("numshards", DefaultNumShards, "Set number of shards per index")
 		retentionPeriod = fs.String("retention", DefaultRetentionPeriod, "Data retention period. Minimum is 24 hours")
 		cpuProfile      = fs.String("cpuprof", "", "Where to write CPU profiling data. Not written if not set")
@@ -316,7 +317,7 @@ func stopProfile() {
 }
 
 func printHelp() {
-	fmt.Println("ekanite [options]")
+	fmt.Println("ekanited [options]")
 	fs.PrintDefaults()
 }
 
