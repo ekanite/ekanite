@@ -108,11 +108,11 @@ Searching the logs
 ------------
 Search support is pretty simple at the moment. You have two options -- a telnet-like interface, and a browser-based interface.
 
+### Telnet interface
+
 Telnet to the query server (see the command line options) and enter a search term. The query language supported is the simple language supported by [bleve](http://godoc.org/github.com/blevesearch/bleve#NewQueryStringQuery), but a more sophisiticated query syntax, including searching for specific field values, may be supported soon.
 
 For example, below is an example search session, showing accesses to the login URL of a Wordpress site. The telnet clients connects to the query server and enters the string `login`
-
-### Telnet interface
 
 ```
 $ telnet 127.0.0.1 9950
@@ -138,7 +138,7 @@ A more sophisticated client program is planned.
 
 ### Browser interface
 
-The browser-based interface also accepts bleve-style queries, identical to those described above. By default the browser interface is available at [http://localhost:8080](http://localhost:8080)
+The browser-based interface also accepts bleve-style queries, identical to those described in the _Telnet_ section. By default the browser interface is available at [http://localhost:8080](http://localhost:8080).
 
 ## Diagnostics
 Basic statistics and diagnostics are available. Visit `http://localhost:9951/debug/vars` to retrieve this information. The host and port can be changed via the `-diag` command-line option.
