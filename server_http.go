@@ -8,9 +8,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-
-	"github.com/gorilla/csrf"
-	"github.com/gorilla/securecookie"
 )
 
 // Server serves query client connections.
@@ -48,11 +45,7 @@ func (s *HttpServer) Start() error {
 		return err
 	}
 
-	CSRF := csrf.Protect(securecookie.GenerateRandomKey(32),
-		csrf.Secure(false),
-		csrf.HttpOnly(true))
-
-	go http.Serve(ln, CSRF(s))
+	go http.Serve(ln, s)
 	return nil
 }
 
@@ -109,13 +102,11 @@ func (s *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Headline      string
 			ReturnResults bool
 			LogMessages   []string
-			CsrfField     template.HTML
 		}{
 			"Ekanite query interface",
 			"Ekanite - Listing " + strconv.Itoa(len(resultSlice)) + " results for '" + userQuery + "'",
 			true,
 			resultSlice,
-			csrf.TemplateField(r),
 		}
 
 		if err := s.template.Execute(w, data); err != nil {
@@ -134,13 +125,11 @@ func serveIndex(s *HttpServer, w http.ResponseWriter, r *http.Request) error {
 		Headline      string
 		ReturnResults bool
 		LogMessages   []string
-		CsrfField     template.HTML
 	}{
 		"Ekanite query interface",
 		"Ekanite query interface",
 		false,
 		[]string{},
-		csrf.TemplateField(r),
 	}
 
 	if err := s.template.Execute(w, data); err != nil {
@@ -165,7 +154,7 @@ const templateSource string = `
 <head>
 <meta charset="utf-8" />
 <title>{{ $.Title }}</title>
-<style type="text/css"> 
+<style type="text/css">
 body, h2 {
 	margin: 50px;
 	font-family: sans-serif;
@@ -206,9 +195,8 @@ textarea {
     <textarea name="query" cols="100" rows="2"></textarea>
     <br>
     <input name="submit" type="submit" class="button" value="Query">
-    {{ .CsrfField }}
 	</form>
-	
+
 {{ if $.ReturnResults }}
 	<hr>
 	<ul>
