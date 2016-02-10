@@ -15,7 +15,7 @@ type Searcher interface {
 // Server serves query client connections.
 type Server struct {
 	iface    string
-	searcher Searcher
+	Searcher Searcher
 
 	addr net.Addr
 
@@ -26,7 +26,7 @@ type Server struct {
 func NewServer(iface string, searcher Searcher) *Server {
 	return &Server{
 		iface:    iface,
-		searcher: searcher,
+		Searcher: searcher,
 		Logger:   log.New(os.Stderr, "[server] ", log.LstdFlags),
 	}
 }
@@ -78,7 +78,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 			}
 
 			s.Logger.Printf("executing query '%s'", query)
-			c, err := s.searcher.Search(query)
+			c, err := s.Searcher.Search(query)
 			if err != nil {
 				conn.Write([]byte(err.Error()))
 			} else {

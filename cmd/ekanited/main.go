@@ -75,6 +75,7 @@ func main() {
 		caPemPath       = fs.String("tlspem", "", "path to CA PEM file for TLS-enabled TCP server. If not set, TLS not activated")
 		caKeyPath       = fs.String("tlskey", "", "path to CA key file for TLS-enabled TCP server. If not set, TLS not activated")
 		queryIface      = fs.String("query", DefaultQueryAddr, "TCP Bind address for query server in the form host:port. To disable set to empty string")
+		queryIfaceHttp  = fs.String("queryhttp", "", "TCP Bind address for http query server in the form host:port. To disable set to empty string")
 		numShards       = fs.Int("numshards", DefaultNumShards, "Set number of shards per index")
 		retentionPeriod = fs.String("retention", DefaultRetentionPeriod, "Data retention period. Minimum is 24 hours")
 		cpuProfile      = fs.String("cpuprof", "", "Where to write CPU profiling data. Not written if not set")
@@ -138,6 +139,18 @@ func main() {
 			log.Fatalf("failed to start query server: %s", err.Error())
 		}
 		log.Printf("query server listening to %s", *queryIface)
+	}
+
+	// Start the http query server if requested.
+	if *queryIfaceHttp != "" {
+		server := ekanite.NewHttpServer(*queryIfaceHttp, engine)
+		if server == nil {
+			log.Fatal("failed to create HTTP query server")
+		}
+		if err := server.Start(); err != nil {
+			log.Fatalf("failed to start HTTP query server: %s", err.Error())
+		}
+		log.Printf("HTTP query server listening to %s", *queryIfaceHttp)
 	}
 
 	// Create and start the batcher.
