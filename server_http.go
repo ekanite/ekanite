@@ -132,11 +132,7 @@ func serveIndex(s *HttpServer, w http.ResponseWriter, r *http.Request) error {
 		[]string{},
 	}
 
-	if err := s.template.Execute(w, data); err != nil {
-		return err
-	}
-
-	return nil
+	return s.template.Execute(w, data)
 }
 
 // dontCache sets necessary headers to avoid client and intermediate caching of response
