@@ -138,7 +138,9 @@ A more sophisticated client program is planned.
 
 ### Browser interface
 
-The browser-based interface also accepts bleve-style queries, identical to those described in the _Telnet_ section. By default the browser interface is available at [http://localhost:8080](http://localhost:8080).
+The browser-based interface also accepts bleve-style queries, identical to those described in the _Telnet_ section. By default the browser interface is available at [http://localhost:8080](http://localhost:8080). An example session is shown below.
+
+![Data Diagram](img/eq.png)
 
 ## Diagnostics
 Basic statistics and diagnostics are available. Visit `http://localhost:9951/debug/vars` to retrieve this information. The host and port can be changed via the `-diag` command-line option.
