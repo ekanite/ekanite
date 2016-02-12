@@ -222,8 +222,10 @@ func main() {
 
 	stats.Set("launch", time.Now().UTC())
 
+	// Set up signal handling.
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
+	
 	// Block until one of the signals above is received
 	select {
 	case <-signalCh:
