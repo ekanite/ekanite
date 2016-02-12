@@ -210,7 +210,7 @@ func main() {
 		if err := collector.Start(batcher.C()); err != nil {
 			log.Fatalf("failed to start UDP collector: %s", err.Error())
 		}
-		log.Printf("UDP collector listening to %s", *tcpIface)
+		log.Printf("UDP collector listening to %s", *udpIface)
 	}
 
 	// Start profiling.
