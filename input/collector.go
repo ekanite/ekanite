@@ -9,6 +9,10 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/ekanite/ekanite/input/ecma404"
+	"github.com/ekanite/ekanite/input/rfc5424"
+	"github.com/ekanite/ekanite/input/types"
 )
 
 var sequenceNumber int64
@@ -19,20 +23,15 @@ func init() {
 }
 
 const (
+	_JSON          = "ecma404"
 	newlineTimeout = time.Duration(1000 * time.Millisecond)
 	msgBufSize     = 256
 )
 
-// Collector specifies the interface all network collectors must implement.
-type Collector interface {
-	Start(chan<- *Event) error
-	Addr() net.Addr
-}
-
-// TCPCollector represents a network collector that accepts and handler TCP connections.
 type TCPCollector struct {
-	iface  string
-	parser *RFC5424Parser
+	iface     string
+	delimiter types.Delimiter
+	parser    types.Parser
 
 	addr      net.Addr
 	tlsConfig *tls.Config
@@ -41,33 +40,49 @@ type TCPCollector struct {
 // UDPCollector represents a network collector that accepts UDP packets.
 type UDPCollector struct {
 	addr   *net.UDPAddr
-	parser *RFC5424Parser
+	parser types.Parser
+}
+
+func (s *TCPCollector) Addr() net.Addr {
+	return s.addr
 }
 
 // NewCollector returns a network collector of the specified type, that will bind
 // to the given inteface on Start(). If config is non-nil, a secure Collector will
 // be returned. Secure Collectors require the protocol be TCP.
-func NewCollector(proto, iface string, tlsConfig *tls.Config) Collector {
-	parser := NewRFC5424Parser()
+func NewCollector(proto, input string, iface string, tlsConfig *tls.Config) types.Collector {
 	if strings.ToLower(proto) == "tcp" {
-		return &TCPCollector{
-			iface:     iface,
-			parser:    parser,
-			tlsConfig: tlsConfig,
+		if strings.ToLower(input) == _JSON {
+			return &TCPCollector{
+				iface:     iface,
+				parser:    ecma404.NewParser(),
+				delimiter: ecma404.NewDelimiter(),
+				tlsConfig: tlsConfig,
+			}
+		} else {
+			return &TCPCollector{
+				iface:     iface,
+				parser:    rfc5424.NewParser(),
+				delimiter: rfc5424.NewDelimiter(msgBufSize),
+				tlsConfig: tlsConfig,
+			}
 		}
 	} else if strings.ToLower(proto) == "udp" {
 		addr, err := net.ResolveUDPAddr("udp", iface)
 		if err != nil {
 			return nil
 		}
-
-		return &UDPCollector{addr: addr, parser: parser}
+		if strings.ToLower(input) == _JSON {
+			return &UDPCollector{addr: addr, parser: ecma404.NewParser()}
+		} else {
+			return &UDPCollector{addr: addr, parser: rfc5424.NewParser()}
+		}
 	}
 	return nil
 }
 
 // Start instructs the TCPCollector to bind to the interface and accept connections.
-func (s *TCPCollector) Start(c chan<- *Event) error {
+func (s *TCPCollector) Start(c chan<- *types.Event) error {
 	var ln net.Listener
 	var err error
 	if s.tlsConfig == nil {
@@ -93,19 +108,13 @@ func (s *TCPCollector) Start(c chan<- *Event) error {
 	return nil
 }
 
-// Addr returns the net.Addr that the Collector is bound to, in a race-say manner.
-func (s *TCPCollector) Addr() net.Addr {
-	return s.addr
-}
-
-func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
+func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *types.Event) {
 	stats.Add("tcpConnections", 1)
 	defer func() {
 		stats.Add("tcpConnections", -1)
 		conn.Close()
 	}()
 
-	delimiter := NewDelimiter(msgBufSize)
 	reader := bufio.NewReader(conn)
 	var log string
 	var match bool
@@ -117,21 +126,21 @@ func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
 			stats.Add("tcpConnReadError", 1)
 			if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
 				stats.Add("tcpConnReadTimeout", 1)
-				log, match = delimiter.Vestige()
+				log, match = s.delimiter.Vestige()
 			} else if err == io.EOF {
 				stats.Add("tcpConnReadEOF", 1)
-				log, match = delimiter.Vestige()
+				log, match = s.delimiter.Vestige()
 			} else {
 				stats.Add("tcpConnUnrecoverError", 1)
 				return
 			}
 		} else {
 			stats.Add("tcpBytesRead", 1)
-			log, match = delimiter.Push(b)
+			log, match = s.delimiter.Push(b)
 		}
 		if match {
 			stats.Add("tcpEventsRx", 1)
-			c <- &Event{
+			c <- &types.Event{
 				Text:          log,
 				Parsed:        s.parser.Parse(log),
 				ReceptionTime: time.Now().UTC(),
@@ -143,7 +152,7 @@ func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
 }
 
 // Start instructs the UDPCollector to start reading packets from the interface.
-func (s *UDPCollector) Start(c chan<- *Event) error {
+func (s *UDPCollector) Start(c chan<- *types.Event) error {
 	conn, err := net.ListenUDP("udp", s.addr)
 	if err != nil {
 		return err
@@ -159,7 +168,7 @@ func (s *UDPCollector) Start(c chan<- *Event) error {
 			}
 			log := strings.Trim(string(buf[:n]), "\r\n")
 			stats.Add("udpEventsRx", 1)
-			c <- &Event{
+			c <- &types.Event{
 				Text:          log,
 				Parsed:        s.parser.Parse(log),
 				ReceptionTime: time.Now().UTC(),

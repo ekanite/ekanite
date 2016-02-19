@@ -60,7 +60,8 @@ const (
 	DefaultQueryAddr       = "localhost:9950"
 	DefaultHTTPQueryAddr   = "localhost:8080"
 	DefaultDiagsIface      = "localhost:9951"
-	DefaultTCPServer       = "localhost:5514"
+	DefaultTCPServerS      = "localhost:5514"
+	DefaultTCPServerJ      = "localhost:5515"
 )
 
 func main() {
@@ -70,7 +71,8 @@ func main() {
 		batchSize       = fs.Int("batchsize", DefaultBatchSize, "Indexing batch size")
 		batchTimeout    = fs.Int("batchtime", DefaultBatchTimeout, "Indexing batch timeout, in milliseconds")
 		indexMaxPending = fs.Int("maxpending", DefaultIndexMaxPending, "Maximum pending index events")
-		tcpIface        = fs.String("tcp", DefaultTCPServer, "Syslog server TCP bind address in the form host:port. To disable set to empty string")
+		tcpIfaceS       = fs.String("tcpsyslog", DefaultTCPServerS, "Syslog server TCP bind address in the form host:port. To disable set to empty string")
+		tcpIfaceJ       = fs.String("tcpjson", DefaultTCPServerJ, "Json server TCP bind address in the form host:port. To disable set to empty string")
 		udpIface        = fs.String("udp", "", "Syslog server UDP bind address in the form host:port. If not set, not started")
 		diagIface       = fs.String("diag", DefaultDiagsIface, "expvar and pprof bind address in the form host:port. If not set, not started")
 		caPemPath       = fs.String("tlspem", "", "path to CA PEM file for TLS-enabled TCP server. If not set, TLS not activated")
@@ -180,8 +182,8 @@ func main() {
 		}
 	}()
 
-	// Start TCP collector if requested.
-	if *tcpIface != "" {
+	// Start TCP for syslog collector if requested.
+	if *tcpIfaceS != "" {
 		var tlsConfig *tls.Config
 		if *caPemPath != "" && *caKeyPath != "" {
 			tlsConfig, err = newTLSConfig(*caPemPath, *caKeyPath)
@@ -191,19 +193,40 @@ func main() {
 			log.Printf("TLS successfully configured")
 		}
 
-		collector := input.NewCollector("tcp", *tcpIface, tlsConfig)
+		collector := input.NewCollector("tcp", "rfc5424", *tcpIfaceS, tlsConfig)
 		if collector == nil {
-			log.Fatalf("failed to created TCP collector bound to %s", *tcpIface)
+			log.Fatalf("failed to created TCP collector bound to %s", *tcpIfaceS)
 		}
 		if err := collector.Start(batcher.C()); err != nil {
 			log.Fatalf("failed to start TCP collector: %s", err.Error())
 		}
-		log.Printf("TCP collector listening to %s", *tcpIface)
+		log.Printf("TCP collector listening to %s", *tcpIfaceS)
+	}
+
+	// Start TCP for json collector if requested.
+	if *tcpIfaceJ != "" {
+		var tlsConfig *tls.Config
+		if *caPemPath != "" && *caKeyPath != "" {
+			tlsConfig, err = newTLSConfig(*caPemPath, *caKeyPath)
+			if err != nil {
+				log.Fatalf("failed to configure TLS: %s", err.Error())
+			}
+			log.Printf("TLS successfully configured")
+		}
+
+		collector := input.NewCollector("tcp", "ecma404", *tcpIfaceJ, tlsConfig)
+		if collector == nil {
+			log.Fatalf("failed to created TCP collector bound to %s", *tcpIfaceJ)
+		}
+		if err := collector.Start(batcher.C()); err != nil {
+			log.Fatalf("failed to start TCP collector: %s", err.Error())
+		}
+		log.Printf("TCP collector listening to %s", *tcpIfaceJ)
 	}
 
 	// Start UDP collector if requested.
 	if *udpIface != "" {
-		collector := input.NewCollector("udp", *udpIface, nil)
+		collector := input.NewCollector("udp", "", *udpIface, nil)
 		if collector == nil {
 			log.Fatalf("failed to created UDP collector for to %s", *udpIface)
 		}
@@ -225,7 +248,7 @@ func main() {
 	// Set up signal handling.
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-	
+
 	// Block until one of the signals above is received
 	select {
 	case <-signalCh:

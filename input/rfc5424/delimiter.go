@@ -1,4 +1,4 @@
-package input
+package rfc5424
 
 import (
 	"regexp"
@@ -57,7 +57,7 @@ func (self *Delimiter) Push(b byte) (string, bool) {
 
 // Vestige returns the bytes which have been pushed to Delimiter, since
 // the last Syslog message was returned, but only if the buffer appears
-// to be a valid syslog message.
+// to be a valid Syslog message.
 func (self *Delimiter) Vestige() (string, bool) {
 	delimiter := syslogRegex.FindIndex(self.buffer)
 	if delimiter == nil {

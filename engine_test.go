@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ekanite/ekanite/input"
+	"github.com/ekanite/ekanite/input/types"
 )
 
 type TestIndexer struct {
@@ -278,7 +278,7 @@ func TestEngine_IndexThenSearch(t *testing.T) {
 	line3 := "auth password rejected for user philip"
 	ev3 := newIndexableEvent(line3, parseTime("1982-02-05T04:43:02Z"))
 
-	if err := e.Index([]*Event{ev1, ev2, ev3}); err != nil {
+	if err := e.Index([]*types.Event{ev1, ev2, ev3}); err != nil {
 		t.Fatalf("failed to index events: %s", err.Error())
 	}
 	total, err := e.Total()
@@ -517,16 +517,16 @@ func parseTime(timestamp string) time.Time {
 	return t
 }
 
-func newInputEvent(Line string, refTime time.Time) *input.Event {
-	return &input.Event{
+func newInputEvent(Line string, refTime time.Time) *types.Event {
+	return &types.Event{
 		Text:          Line,
 		ReceptionTime: refTime,
 	}
 }
 
-func newIndexableEvent(line string, refTime time.Time) *Event {
-	return &Event{
-		&input.Event{
+func newIndexableEvent(line string, refTime time.Time) *types.Event {
+	return &types.Event{
+		&types.Event{
 			Text:          line,
 			ReceptionTime: refTime,
 		},

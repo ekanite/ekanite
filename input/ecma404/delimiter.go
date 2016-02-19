@@ -1,45 +1,30 @@
-package input
+package ecma404
 
-import (
-	"bytes"
-	"strconv"
-	"strings"
-)
+import "bytes"
 
-const SEPERATOR = ":"
-
-type BufferLength struct {
-	Raw    []byte
-	Parsed uint64
+// A Delimiter detects when Json lines start.
+type Delimiter struct {
+	buffer *bytes.Buffer
 }
 
-func init() {
-	buf := bytes.NewBuffer([]byte(""))
-	len := new(BufferLength)
-	isBuf := false
+// NewDelimiter returns an initialized Delimiter.
+func NewDelimiter() *Delimiter {
+	self := &Delimiter{}
+	self.buffer = bytes.NewBuffer(nil)
+	return self
 }
 
-func Push(b bytes) (bool, string) {
-	if isBuffer == true {
-		buf.WriteByte(b)
-		if uint(buf.Len()) == len.Parsed {
-			var buffer string = buff.String()
-			ResetBuff()
-			return buffer, true
-		}
-	} else {
-		if string(b) == SEPERATOR {
-			len.Parsed, _ = strconv.ParseUint(strings.Trim(len.Raw.String(), "\n"), 10, 64)
-			isBuf = true
-		} else {
-			len.Raw.WriteByte(b)
-		}
-		return nil, false
-	}
+// Push a byte into the Delimiter. If the byte results in a
+// a new Json message, it'll be flagged via the bool.
+func (self *Delimiter) Push(b byte) (string, bool) {
+	self.buffer.WriteByte(b)
+	return self.buffer.String(), true
 }
 
-func ResetBuff() {
-	buf.Reset()
-	len = new(BufferLength)
-	isBuf = false
+// Vestige returns the bytes which have been pushed to Delimiter, since
+// the last Json message was returned, but only if the buffer appears
+// to be a valid Json message.
+func (self *Delimiter) Vestige() (string, bool) {
+	self.buffer.Reset()
+	return self.buffer.String(), true
 }
