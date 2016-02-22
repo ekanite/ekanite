@@ -5,23 +5,32 @@ import (
 	"time"
 )
 
+// Builder specifes the interface all delimiter and parser must implement.
+type Builder interface {
+	NewDelimiter() Delimiter
+	NewParser() Parser
+}
+
 // Collector specifies the interface all network collectors must implement.
 type Collector interface {
 	Start(chan<- *Event) error
 	Addr() net.Addr
 }
 
+// Delimiter splits multiple input requests into single requests
 type Delimiter interface {
 	Push(b byte) (string, bool)
 	Vestige() (string, bool)
 }
 
-type Message interface {
-	GetTimestamp() string
-}
-
+// Parser parses the imput request to the correct format
 type Parser interface {
 	Parse(log string) Message
+}
+
+// Message represents the input request, but in the correct format
+type Message interface {
+	GetTimestamp() string
 }
 
 // Event is a log message, with a reception timestamp and sequence number.

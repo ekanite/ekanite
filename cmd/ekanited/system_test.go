@@ -11,6 +11,7 @@ import (
 
 	"github.com/ekanite/ekanite"
 	"github.com/ekanite/ekanite/input"
+	"github.com/ekanite/ekanite/input/rfc5424"
 	"github.com/ekanite/ekanite/input/types"
 )
 
@@ -339,7 +340,7 @@ type testCollector struct {
 
 // NewCollector returns a new test TCP collector.
 func NewCollector(addr string) *testCollector {
-	return &testCollector{input.NewCollector("tcp", "", addr, nil)}
+	return &testCollector{input.NewCollector("tcp", rfc5424.Builder{}, addr, nil)}
 }
 
 type testBatcher struct {

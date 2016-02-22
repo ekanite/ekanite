@@ -10,8 +10,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ekanite/ekanite/input/ecma404"
-	"github.com/ekanite/ekanite/input/rfc5424"
 	"github.com/ekanite/ekanite/input/types"
 )
 
@@ -23,11 +21,11 @@ func init() {
 }
 
 const (
-	_JSON          = "ecma404"
 	newlineTimeout = time.Duration(1000 * time.Millisecond)
 	msgBufSize     = 256
 )
 
+// TCPCollector represents a network collector that accepts TCP packets.
 type TCPCollector struct {
 	iface     string
 	delimiter types.Delimiter
@@ -50,33 +48,20 @@ func (s *TCPCollector) Addr() net.Addr {
 // NewCollector returns a network collector of the specified type, that will bind
 // to the given inteface on Start(). If config is non-nil, a secure Collector will
 // be returned. Secure Collectors require the protocol be TCP.
-func NewCollector(proto, input string, iface string, tlsConfig *tls.Config) types.Collector {
+func NewCollector(proto string, builder types.Builder, iface string, tlsConfig *tls.Config) types.Collector {
 	if strings.ToLower(proto) == "tcp" {
-		if strings.ToLower(input) == _JSON {
-			return &TCPCollector{
-				iface:     iface,
-				parser:    ecma404.NewParser(),
-				delimiter: ecma404.NewDelimiter(),
-				tlsConfig: tlsConfig,
-			}
-		} else {
-			return &TCPCollector{
-				iface:     iface,
-				parser:    rfc5424.NewParser(),
-				delimiter: rfc5424.NewDelimiter(msgBufSize),
-				tlsConfig: tlsConfig,
-			}
+		return &TCPCollector{
+			iface:     iface,
+			delimiter: builder.NewDelimiter(),
+			parser:    builder.NewParser(),
+			tlsConfig: tlsConfig,
 		}
 	} else if strings.ToLower(proto) == "udp" {
 		addr, err := net.ResolveUDPAddr("udp", iface)
 		if err != nil {
 			return nil
 		}
-		if strings.ToLower(input) == _JSON {
-			return &UDPCollector{addr: addr, parser: ecma404.NewParser()}
-		} else {
-			return &UDPCollector{addr: addr, parser: rfc5424.NewParser()}
-		}
+		return &UDPCollector{addr: addr, parser: builder.NewParser()}
 	}
 	return nil
 }

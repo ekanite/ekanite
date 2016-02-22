@@ -23,6 +23,9 @@ import (
 
 	"github.com/ekanite/ekanite"
 	"github.com/ekanite/ekanite/input"
+	"github.com/ekanite/ekanite/input/ecma404"
+	"github.com/ekanite/ekanite/input/rfc5424"
+	"github.com/ekanite/ekanite/input/types"
 )
 
 var (
@@ -33,6 +36,7 @@ var (
 var datadir string
 var tcpIface string
 var udpIface string
+var inputType string
 var caPemPath string
 var caKeyPath string
 var queryIface string
@@ -60,8 +64,8 @@ const (
 	DefaultQueryAddr       = "localhost:9950"
 	DefaultHTTPQueryAddr   = "localhost:8080"
 	DefaultDiagsIface      = "localhost:9951"
-	DefaultTCPServerS      = "localhost:5514"
-	DefaultTCPServerJ      = "localhost:5515"
+	DefaultTCPServer       = "localhost:5514"
+	DefaultInputType       = "syslog"
 )
 
 func main() {
@@ -71,9 +75,9 @@ func main() {
 		batchSize       = fs.Int("batchsize", DefaultBatchSize, "Indexing batch size")
 		batchTimeout    = fs.Int("batchtime", DefaultBatchTimeout, "Indexing batch timeout, in milliseconds")
 		indexMaxPending = fs.Int("maxpending", DefaultIndexMaxPending, "Maximum pending index events")
-		tcpIfaceS       = fs.String("tcpsyslog", DefaultTCPServerS, "Syslog server TCP bind address in the form host:port. To disable set to empty string")
-		tcpIfaceJ       = fs.String("tcpjson", DefaultTCPServerJ, "Json server TCP bind address in the form host:port. To disable set to empty string")
-		udpIface        = fs.String("udp", "", "Syslog server UDP bind address in the form host:port. If not set, not started")
+		tcpIface        = fs.String("tcp", DefaultTCPServer, "Server TCP bind address in the form host:port. To disable set to empty string")
+		udpIface        = fs.String("udp", "", "Server UDP bind address in the form host:port. If not set, not started")
+		inputType       = fs.String("input", DefaultInputType, "Input type format. Chose between syslog and json.")
 		diagIface       = fs.String("diag", DefaultDiagsIface, "expvar and pprof bind address in the form host:port. If not set, not started")
 		caPemPath       = fs.String("tlspem", "", "path to CA PEM file for TLS-enabled TCP server. If not set, TLS not activated")
 		caKeyPath       = fs.String("tlskey", "", "path to CA key file for TLS-enabled TCP server. If not set, TLS not activated")
@@ -182,29 +186,14 @@ func main() {
 		}
 	}()
 
-	// Start TCP for syslog collector if requested.
-	if *tcpIfaceS != "" {
-		var tlsConfig *tls.Config
-		if *caPemPath != "" && *caKeyPath != "" {
-			tlsConfig, err = newTLSConfig(*caPemPath, *caKeyPath)
-			if err != nil {
-				log.Fatalf("failed to configure TLS: %s", err.Error())
-			}
-			log.Printf("TLS successfully configured")
-		}
-
-		collector := input.NewCollector("tcp", "rfc5424", *tcpIfaceS, tlsConfig)
-		if collector == nil {
-			log.Fatalf("failed to created TCP collector bound to %s", *tcpIfaceS)
-		}
-		if err := collector.Start(batcher.C()); err != nil {
-			log.Fatalf("failed to start TCP collector: %s", err.Error())
-		}
-		log.Printf("TCP collector listening to %s", *tcpIfaceS)
+	// Bind input builder to collector
+	var builder types.Builder = rfc5424.Builder{}
+	if *inputType == "json" {
+		builder = ecma404.Builder{}
 	}
 
-	// Start TCP for json collector if requested.
-	if *tcpIfaceJ != "" {
+	// Start TCP for collector if requested.
+	if *tcpIface != "" {
 		var tlsConfig *tls.Config
 		if *caPemPath != "" && *caKeyPath != "" {
 			tlsConfig, err = newTLSConfig(*caPemPath, *caKeyPath)
@@ -213,20 +202,19 @@ func main() {
 			}
 			log.Printf("TLS successfully configured")
 		}
-
-		collector := input.NewCollector("tcp", "ecma404", *tcpIfaceJ, tlsConfig)
+		collector := input.NewCollector("tcp", builder, *tcpIface, tlsConfig)
 		if collector == nil {
-			log.Fatalf("failed to created TCP collector bound to %s", *tcpIfaceJ)
+			log.Fatalf("failed to created TCP collector bound to %s", *tcpIface)
 		}
 		if err := collector.Start(batcher.C()); err != nil {
 			log.Fatalf("failed to start TCP collector: %s", err.Error())
 		}
-		log.Printf("TCP collector listening to %s", *tcpIfaceJ)
+		log.Printf("TCP collector listening to %s", *tcpIface)
 	}
 
 	// Start UDP collector if requested.
 	if *udpIface != "" {
-		collector := input.NewCollector("udp", "", *udpIface, nil)
+		collector := input.NewCollector("udp", builder, *udpIface, nil)
 		if collector == nil {
 			log.Fatalf("failed to created UDP collector for to %s", *udpIface)
 		}
