@@ -1,6 +1,9 @@
 package ecma404
 
-import "bytes"
+import (
+	"bytes"
+	"strings"
+)
 
 // A Delimiter detects when Json lines start.
 type Delimiter struct {
@@ -18,13 +21,14 @@ func NewDelimiter() *Delimiter {
 // a new Json message, it'll be flagged via the bool.
 func (self *Delimiter) Push(b byte) (string, bool) {
 	self.buffer.WriteByte(b)
-	return self.buffer.String(), true
+	return self.buffer.String(), false
 }
 
 // Vestige returns the bytes which have been pushed to Delimiter, since
 // the last Json message was returned, but only if the buffer appears
 // to be a valid Json message.
 func (self *Delimiter) Vestige() (string, bool) {
+	dispatch := strings.TrimRight(self.buffer.String(), "\r\n")
 	self.buffer.Reset()
-	return self.buffer.String(), true
+	return dispatch, true
 }
