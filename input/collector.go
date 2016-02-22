@@ -27,9 +27,8 @@ const (
 
 // TCPCollector represents a network collector that accepts TCP packets.
 type TCPCollector struct {
-	iface     string
-	delimiter types.Delimiter
-	parser    types.Parser
+	iface   string
+	builder types.Builder
 
 	addr      net.Addr
 	tlsConfig *tls.Config
@@ -37,8 +36,8 @@ type TCPCollector struct {
 
 // UDPCollector represents a network collector that accepts UDP packets.
 type UDPCollector struct {
-	addr   *net.UDPAddr
-	parser types.Parser
+	addr    *net.UDPAddr
+	builder types.Builder
 }
 
 func (s *TCPCollector) Addr() net.Addr {
@@ -52,8 +51,7 @@ func NewCollector(proto string, builder types.Builder, iface string, tlsConfig *
 	if strings.ToLower(proto) == "tcp" {
 		return &TCPCollector{
 			iface:     iface,
-			delimiter: builder.NewDelimiter(),
-			parser:    builder.NewParser(),
+			builder:   builder,
 			tlsConfig: tlsConfig,
 		}
 	} else if strings.ToLower(proto) == "udp" {
@@ -61,7 +59,7 @@ func NewCollector(proto string, builder types.Builder, iface string, tlsConfig *
 		if err != nil {
 			return nil
 		}
-		return &UDPCollector{addr: addr, parser: builder.NewParser()}
+		return &UDPCollector{addr: addr, builder: builder}
 	}
 	return nil
 }
@@ -99,7 +97,8 @@ func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *types.Event) {
 		stats.Add("tcpConnections", -1)
 		conn.Close()
 	}()
-
+	delimiter := s.builder.NewDelimiter()
+	parser := s.builder.NewParser()
 	reader := bufio.NewReader(conn)
 	var log string
 	var match bool
@@ -111,23 +110,23 @@ func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *types.Event) {
 			stats.Add("tcpConnReadError", 1)
 			if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
 				stats.Add("tcpConnReadTimeout", 1)
-				log, match = s.delimiter.Vestige()
+				log, match = delimiter.Vestige()
 			} else if err == io.EOF {
 				stats.Add("tcpConnReadEOF", 1)
-				log, match = s.delimiter.Vestige()
+				log, match = delimiter.Vestige()
 			} else {
 				stats.Add("tcpConnUnrecoverError", 1)
 				return
 			}
 		} else {
 			stats.Add("tcpBytesRead", 1)
-			log, match = s.delimiter.Push(b)
+			log, match = delimiter.Push(b)
 		}
 		if match {
 			stats.Add("tcpEventsRx", 1)
 			c <- &types.Event{
 				Text:          log,
-				Parsed:        s.parser.Parse(log),
+				Parsed:        parser.Parse(log),
 				ReceptionTime: time.Now().UTC(),
 				Sequence:      atomic.AddInt64(&sequenceNumber, 1),
 				SourceIP:      conn.RemoteAddr().String(),
@@ -153,9 +152,10 @@ func (s *UDPCollector) Start(c chan<- *types.Event) error {
 			}
 			log := strings.Trim(string(buf[:n]), "\r\n")
 			stats.Add("udpEventsRx", 1)
+			parser := s.builder.NewParser()
 			c <- &types.Event{
 				Text:          log,
-				Parsed:        s.parser.Parse(log),
+				Parsed:        parser.Parse(log),
 				ReceptionTime: time.Now().UTC(),
 				Sequence:      atomic.AddInt64(&sequenceNumber, 1),
 				SourceIP:      addr.String(),

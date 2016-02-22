@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Builder specifes the interface all delimiter and parser must implement.
+// Builder specifes the interface any delimiter and parser must implement.
 type Builder interface {
 	NewDelimiter() Delimiter
 	NewParser() Parser
