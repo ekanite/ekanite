@@ -278,7 +278,7 @@ func TestEngine_IndexThenSearch(t *testing.T) {
 	line3 := "auth password rejected for user philip"
 	ev3 := newIndexableEvent(line3, parseTime("1982-02-05T04:43:02Z"))
 
-	if err := e.Index([]*types.Event{ev1, ev2, ev3}); err != nil {
+	if err := e.Index([]*Event{ev1, ev2, ev3}); err != nil {
 		t.Fatalf("failed to index events: %s", err.Error())
 	}
 	total, err := e.Total()
@@ -524,8 +524,8 @@ func newInputEvent(Line string, refTime time.Time) *types.Event {
 	}
 }
 
-func newIndexableEvent(line string, refTime time.Time) *types.Event {
-	return &types.Event{
+func newIndexableEvent(line string, refTime time.Time) *Event {
+	return &Event{
 		&types.Event{
 			Text:          line,
 			ReceptionTime: refTime,
