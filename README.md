@@ -28,7 +28,7 @@ Running
 The daemon will be located in the ```$GOPATH/bin``` directory. Execute
 
 ```
-$ ekanited -h
+$ $GOPATH/bin/ekanited -h
 ekanited [options]
   -batchsize int
         Indexing batch size (default 300)
