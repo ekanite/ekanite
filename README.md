@@ -145,9 +145,6 @@ The browser-based interface also accepts bleve-style queries, identical to those
 ## Diagnostics
 Basic statistics and diagnostics are available. Visit `http://localhost:9951/debug/vars` to retrieve this information. The host and port can be changed via the `-diag` command-line option.
 
-## Reporting
-Ekanite reports a small amount anonymous data to [Loggly](http://www.loggly.com), each time it is launched. This data is just the host operating system and system architecture and is only used to track the number of Ekanite deployments. Reporting can be disabled by passing `-noreport=true` to Ekanite at launch time.
-
 ## Project Status
 The project is actively developed and is early stage software -- contributions in the form of bug reports and pull requests are welcome. Much work remains around performance and scaling, and you can check out [the issues](https://github.com/ekanite/ekanite/issues) for more details.
 

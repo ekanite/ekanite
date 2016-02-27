@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
@@ -44,7 +43,6 @@ var numShards int
 var retentionPeriod string
 var cpuProfile string
 var memProfile string
-var noReport bool
 
 // Flag set
 var fs *flag.FlagSet
@@ -81,7 +79,6 @@ func main() {
 		retentionPeriod = fs.String("retention", DefaultRetentionPeriod, "Data retention period. Minimum is 24 hours")
 		cpuProfile      = fs.String("cpuprof", "", "Where to write CPU profiling data. Not written if not set")
 		memProfile      = fs.String("memprof", "", "Where to write memory profiling data. Not written if not set")
-		noReport        = fs.Bool("noreport", false, "Do not report anonymous data on launch")
 	)
 	fs.Usage = printHelp
 	fs.Parse(os.Args[1:])
@@ -216,16 +213,12 @@ func main() {
 	// Start profiling.
 	startProfile(*cpuProfile, *memProfile)
 
-	if !*noReport {
-		reportLaunch()
-	}
-
 	stats.Set("launch", time.Now().UTC())
 
 	// Set up signal handling.
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-	
+
 	// Block until one of the signals above is received
 	select {
 	case <-signalCh:
@@ -321,13 +314,4 @@ func stopProfile() {
 func printHelp() {
 	fmt.Println("ekanited [options]")
 	fs.PrintDefaults()
-}
-
-func reportLaunch() {
-	json := fmt.Sprintf(`{"os": "%s", "arch": "%s", "gomaxprocs": %d, "numcpu": %d, "numshards": %d, "app": "ekanited"}`,
-		runtime.GOOS, runtime.GOARCH, runtime.GOMAXPROCS(0), runtime.NumCPU(), numShards)
-	data := bytes.NewBufferString(json)
-	client := http.Client{Timeout: time.Duration(5 * time.Second)}
-	go client.Post("https://logs-01.loggly.com/inputs/8a0edd84-92ba-46e4-ada8-c529d0f105af/tag/reporting/",
-		"application/json", data)
 }
