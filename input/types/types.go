@@ -5,16 +5,16 @@ import (
 	"time"
 )
 
-// Builder specifes the interface any delimiter and parser must implement.
-type Builder interface {
-	NewDelimiter() Delimiter
-	NewParser() Parser
-}
-
 // Collector specifies the interface all network collectors must implement.
 type Collector interface {
 	Start(chan<- *Event) error
 	Addr() net.Addr
+}
+
+// Tokenizer specifes the interface any delimiter and parser must implement.
+type Tokenizer interface {
+	NewDelimiter() Delimiter
+	NewParser() Parser
 }
 
 // Delimiter splits multiple input requests into single requests

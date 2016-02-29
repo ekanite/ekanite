@@ -186,10 +186,10 @@ func main() {
 		}
 	}()
 
-	// Bind input builder to collector
-	var builder types.Builder = rfc5424.Builder{}
+	// Bind input tokenizer to collector
+	var tokenizer types.Tokenizer = rfc5424.Tokenizer{}
 	if *inputType == "json" {
-		builder = ecma404.Builder{}
+		tokenizer = ecma404.Tokenizer{}
 	}
 
 	// Start TCP for collector if requested.
@@ -202,7 +202,7 @@ func main() {
 			}
 			log.Printf("TLS successfully configured")
 		}
-		collector := input.NewCollector("tcp", builder, *tcpIface, tlsConfig)
+		collector := input.NewCollector("tcp", tokenizer, *tcpIface, tlsConfig)
 		if collector == nil {
 			log.Fatalf("failed to created TCP collector bound to %s", *tcpIface)
 		}
@@ -214,7 +214,7 @@ func main() {
 
 	// Start UDP collector if requested.
 	if *udpIface != "" {
-		collector := input.NewCollector("udp", builder, *udpIface, nil)
+		collector := input.NewCollector("udp", tokenizer, *udpIface, nil)
 		if collector == nil {
 			log.Fatalf("failed to created UDP collector for to %s", *udpIface)
 		}

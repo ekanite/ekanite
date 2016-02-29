@@ -27,8 +27,8 @@ const (
 
 // TCPCollector represents a network collector that accepts TCP packets.
 type TCPCollector struct {
-	iface   string
-	builder types.Builder
+	iface     string
+	tokenizer types.Tokenizer
 
 	addr      net.Addr
 	tlsConfig *tls.Config
@@ -36,8 +36,8 @@ type TCPCollector struct {
 
 // UDPCollector represents a network collector that accepts UDP packets.
 type UDPCollector struct {
-	addr    *net.UDPAddr
-	builder types.Builder
+	addr      *net.UDPAddr
+	tokenizer types.Tokenizer
 }
 
 func (s *TCPCollector) Addr() net.Addr {
@@ -47,11 +47,11 @@ func (s *TCPCollector) Addr() net.Addr {
 // NewCollector returns a network collector of the specified type, that will bind
 // to the given inteface on Start(). If config is non-nil, a secure Collector will
 // be returned. Secure Collectors require the protocol be TCP.
-func NewCollector(proto string, builder types.Builder, iface string, tlsConfig *tls.Config) types.Collector {
+func NewCollector(proto string, tokenizer types.Tokenizer, iface string, tlsConfig *tls.Config) types.Collector {
 	if strings.ToLower(proto) == "tcp" {
 		return &TCPCollector{
 			iface:     iface,
-			builder:   builder,
+			tokenizer: tokenizer,
 			tlsConfig: tlsConfig,
 		}
 	} else if strings.ToLower(proto) == "udp" {
@@ -59,7 +59,7 @@ func NewCollector(proto string, builder types.Builder, iface string, tlsConfig *
 		if err != nil {
 			return nil
 		}
-		return &UDPCollector{addr: addr, builder: builder}
+		return &UDPCollector{addr: addr, tokenizer: tokenizer}
 	}
 	return nil
 }
@@ -97,8 +97,8 @@ func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *types.Event) {
 		stats.Add("tcpConnections", -1)
 		conn.Close()
 	}()
-	delimiter := s.builder.NewDelimiter()
-	parser := s.builder.NewParser()
+	delimiter := s.tokenizer.NewDelimiter()
+	parser := s.tokenizer.NewParser()
 	reader := bufio.NewReader(conn)
 	var log string
 	var match bool
@@ -152,7 +152,7 @@ func (s *UDPCollector) Start(c chan<- *types.Event) error {
 			}
 			log := strings.Trim(string(buf[:n]), "\r\n")
 			stats.Add("udpEventsRx", 1)
-			parser := s.builder.NewParser()
+			parser := s.tokenizer.NewParser()
 			c <- &types.Event{
 				Text:          log,
 				Parsed:        parser.Parse(log),

@@ -4,12 +4,12 @@ import (
 	"github.com/ekanite/ekanite/input/types"
 )
 
-type Builder struct{}
+type Tokenizer struct{}
 
-func (_ Builder) NewDelimiter() types.Delimiter {
+func (_ Tokenizer) NewDelimiter() types.Delimiter {
 	return NewDelimiter(256)
 }
 
-func (_ Builder) NewParser() types.Parser {
+func (_ Tokenizer) NewParser() types.Parser {
 	return NewParser()
 }

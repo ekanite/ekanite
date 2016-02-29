@@ -340,7 +340,7 @@ type testCollector struct {
 
 // NewCollector returns a new test TCP collector.
 func NewCollector(addr string) *testCollector {
-	return &testCollector{input.NewCollector("tcp", rfc5424.Builder{}, addr, nil)}
+	return &testCollector{input.NewCollector("tcp", rfc5424.Tokenizer{}, addr, nil)}
 }
 
 type testBatcher struct {
