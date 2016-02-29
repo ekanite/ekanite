@@ -12,11 +12,11 @@ import (
 
 var stats = expvar.NewMap("ecma404")
 
-// A Parser parses Json messages.
+// A Parser parses JSON messages.
 type Parser struct {
 }
 
-// Message represents a fully parsed Json message.
+// Message represents a fully parsed JSON message.
 type Message struct {
 	data map[string]string
 }
@@ -38,7 +38,7 @@ func (p *Parser) Parse(raw string) types.Message {
 	}
 	_, ok := m.data["timestamp"]
 	if !ok {
-		stats.Add("unparsed", 1)
+		stats.Add("no-timestamp", 1)
 		return nil
 	}
 	stats.Add("parsed", 1)

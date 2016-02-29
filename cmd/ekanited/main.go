@@ -77,7 +77,7 @@ func main() {
 		indexMaxPending = fs.Int("maxpending", DefaultIndexMaxPending, "Maximum pending index events")
 		tcpIface        = fs.String("tcp", DefaultTCPServer, "Server TCP bind address in the form host:port. To disable set to empty string")
 		udpIface        = fs.String("udp", "", "Server UDP bind address in the form host:port. If not set, not started")
-		inputType       = fs.String("input", DefaultInputType, "Input type format. Chose between syslog and json.")
+		inputType       = fs.String("input", DefaultInputType, "Input type format. Chose between syslog and JSON.")
 		diagIface       = fs.String("diag", DefaultDiagsIface, "expvar and pprof bind address in the form host:port. If not set, not started")
 		caPemPath       = fs.String("tlspem", "", "path to CA PEM file for TLS-enabled TCP server. If not set, TLS not activated")
 		caKeyPath       = fs.String("tlskey", "", "path to CA key file for TLS-enabled TCP server. If not set, TLS not activated")
