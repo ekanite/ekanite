@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ekanite/ekanite/input/types"
+	"github.com/ekanite/ekanite/input"
 )
 
 // TestEvent_New tests simple Event creation.
@@ -20,7 +20,7 @@ func TestEvent_NewUnparsed(t *testing.T) {
 	text := "this is a log line"
 	now := time.Now()
 	ev := &Event{
-		&types.Event{
+		&input.Event{
 			Text:          text,
 			ReceptionTime: now,
 			Sequence:      1234,

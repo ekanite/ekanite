@@ -2,15 +2,15 @@ package input
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/tls"
 	"expvar"
 	"io"
 	"net"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
-
-	"github.com/ekanite/ekanite/input/types"
 )
 
 var sequenceNumber int64
@@ -25,19 +25,24 @@ const (
 	msgBufSize     = 256
 )
 
+// Collector specifies the interface all network collectors must implement.
+type Collector interface {
+	Start(chan<- *Event) error
+	Addr() net.Addr
+}
+
 // TCPCollector represents a network collector that accepts TCP packets.
 type TCPCollector struct {
 	iface     string
-	tokenizer types.Tokenizer
-
 	addr      net.Addr
 	tlsConfig *tls.Config
+	format    string
 }
 
 // UDPCollector represents a network collector that accepts UDP packets.
 type UDPCollector struct {
-	addr      *net.UDPAddr
-	tokenizer types.Tokenizer
+	addr   *net.UDPAddr
+	format string
 }
 
 func (s *TCPCollector) Addr() net.Addr {
@@ -47,25 +52,25 @@ func (s *TCPCollector) Addr() net.Addr {
 // NewCollector returns a network collector of the specified type, that will bind
 // to the given inteface on Start(). If config is non-nil, a secure Collector will
 // be returned. Secure Collectors require the protocol be TCP.
-func NewCollector(proto string, tokenizer types.Tokenizer, iface string, tlsConfig *tls.Config) types.Collector {
+func NewCollector(proto string, iface string, tlsConfig *tls.Config, format string) Collector {
 	if strings.ToLower(proto) == "tcp" {
 		return &TCPCollector{
 			iface:     iface,
-			tokenizer: tokenizer,
 			tlsConfig: tlsConfig,
+			format:    format,
 		}
 	} else if strings.ToLower(proto) == "udp" {
 		addr, err := net.ResolveUDPAddr("udp", iface)
 		if err != nil {
 			return nil
 		}
-		return &UDPCollector{addr: addr, tokenizer: tokenizer}
+		return &UDPCollector{addr: addr, format: format}
 	}
 	return nil
 }
 
 // Start instructs the TCPCollector to bind to the interface and accept connections.
-func (s *TCPCollector) Start(c chan<- *types.Event) error {
+func (s *TCPCollector) Start(c chan<- *Event) error {
 	var ln net.Listener
 	var err error
 	if s.tlsConfig == nil {
@@ -91,17 +96,22 @@ func (s *TCPCollector) Start(c chan<- *types.Event) error {
 	return nil
 }
 
-func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *types.Event) {
+func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
+
 	stats.Add("tcpConnections", 1)
 	defer func() {
 		stats.Add("tcpConnections", -1)
 		conn.Close()
 	}()
-	delimiter := s.tokenizer.NewDelimiter()
-	parser := s.tokenizer.NewParser()
+
+	parser := NewParser(s.format)
 	reader := bufio.NewReader(conn)
-	var log string
-	var match bool
+	logBuff := bytes.NewBuffer([]byte(""))
+	logLengthBuff := bytes.NewBuffer([]byte(""))
+	var (
+		expectLog bool
+		logLength uint64
+	)
 
 	for {
 		conn.SetReadDeadline(time.Now().Add(newlineTimeout))
@@ -110,33 +120,54 @@ func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *types.Event) {
 			stats.Add("tcpConnReadError", 1)
 			if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
 				stats.Add("tcpConnReadTimeout", 1)
-				log, match = delimiter.Vestige()
 			} else if err == io.EOF {
 				stats.Add("tcpConnReadEOF", 1)
-				log, match = delimiter.Vestige()
 			} else {
 				stats.Add("tcpConnUnrecoverError", 1)
 				return
 			}
 		} else {
 			stats.Add("tcpBytesRead", 1)
-			log, match = delimiter.Push(b)
-		}
-		if match {
-			stats.Add("tcpEventsRx", 1)
-			c <- &types.Event{
-				Text:          log,
-				Parsed:        parser.Parse(log),
-				ReceptionTime: time.Now().UTC(),
-				Sequence:      atomic.AddInt64(&sequenceNumber, 1),
-				SourceIP:      conn.RemoteAddr().String(),
+			if expectLog {
+				if logLength != 0 {
+					logBuff.WriteByte(b)
+					logLength--
+				} else {
+					ok, parsed := parser.Parse(logBuff.Bytes())
+					if !ok {
+						continue
+					} else {
+						stats.Add("tcpEventsRx", 1)
+						c <- &Event{
+							Text:          logBuff.String(),
+							Parsed:        parsed,
+							ReceptionTime: time.Now().UTC(),
+							Sequence:      atomic.AddInt64(&sequenceNumber, 1),
+							SourceIP:      conn.RemoteAddr().String(),
+						}
+					}
+					logBuff.Reset()
+					expectLog = false
+				}
+			} else {
+				if b == ":"[0] {
+					logLength, err = strconv.ParseUint(logLengthBuff.String(), 10, 64)
+					if err != nil {
+						stats.Add("tcpBytesLengthError", 1)
+					} else {
+						logLengthBuff.Reset()
+					}
+					expectLog = true
+				} else {
+					logBuff.WriteByte(b)
+				}
 			}
 		}
 	}
 }
 
 // Start instructs the UDPCollector to start reading packets from the interface.
-func (s *UDPCollector) Start(c chan<- *types.Event) error {
+func (s *UDPCollector) Start(c chan<- *Event) error {
 	conn, err := net.ListenUDP("udp", s.addr)
 	if err != nil {
 		return err
@@ -152,13 +183,18 @@ func (s *UDPCollector) Start(c chan<- *types.Event) error {
 			}
 			log := strings.Trim(string(buf[:n]), "\r\n")
 			stats.Add("udpEventsRx", 1)
-			parser := s.tokenizer.NewParser()
-			c <- &types.Event{
-				Text:          log,
-				Parsed:        parser.Parse(log),
-				ReceptionTime: time.Now().UTC(),
-				Sequence:      atomic.AddInt64(&sequenceNumber, 1),
-				SourceIP:      addr.String(),
+			parser := NewParser(s.format)
+			ok, parsed := parser.Parse([]byte(log))
+			if !ok {
+				continue
+			} else {
+				c <- &Event{
+					Text:          log,
+					Parsed:        parsed,
+					ReceptionTime: time.Now().UTC(),
+					Sequence:      atomic.AddInt64(&sequenceNumber, 1),
+					SourceIP:      addr.String(),
+				}
 			}
 		}
 	}()

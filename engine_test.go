@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ekanite/ekanite/input/types"
+	"github.com/ekanite/ekanite/input"
 )
 
 type TestIndexer struct {
@@ -517,8 +517,8 @@ func parseTime(timestamp string) time.Time {
 	return t
 }
 
-func newInputEvent(Line string, refTime time.Time) *types.Event {
-	return &types.Event{
+func newInputEvent(Line string, refTime time.Time) *input.Event {
+	return &input.Event{
 		Text:          Line,
 		ReceptionTime: refTime,
 	}
@@ -526,7 +526,7 @@ func newInputEvent(Line string, refTime time.Time) *types.Event {
 
 func newIndexableEvent(line string, refTime time.Time) *Event {
 	return &Event{
-		&types.Event{
+		&input.Event{
 			Text:          line,
 			ReceptionTime: refTime,
 		},

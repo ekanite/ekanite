@@ -11,9 +11,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ekanite/ekanite/input/types"
+	"github.com/ekanite/ekanite/input"
 )
 
+// Engine defaults
 const (
 	DefaultNumShards       = 16
 	DefaultIndexDuration   = 24 * time.Hour
@@ -22,6 +23,7 @@ const (
 	RetentionCheckInterval = time.Hour
 )
 
+// Engine stats
 var (
 	stats = expvar.NewMap("engine")
 )
@@ -40,7 +42,7 @@ type Batcher struct {
 	size     int
 	duration time.Duration
 
-	c chan *types.Event
+	c chan *input.Event
 }
 
 // NewBatcher returns a Batcher for EventIndexer e, a batching size of sz, a maximum duration
@@ -50,7 +52,7 @@ func NewBatcher(e EventIndexer, sz int, dur time.Duration, max int) *Batcher {
 		indexer:  e,
 		size:     sz,
 		duration: dur,
-		c:        make(chan *types.Event, max),
+		c:        make(chan *input.Event, max),
 	}
 }
 
@@ -100,7 +102,7 @@ func (b *Batcher) Start(errChan chan<- error) error {
 }
 
 // C returns the channel on the batcher to which events should be sent.
-func (b *Batcher) C() chan<- *types.Event {
+func (b *Batcher) C() chan<- *input.Event {
 	return b.c
 }
 
@@ -355,7 +357,6 @@ func (e *Engine) Search(query string) (<-chan string, error) {
 	go func() {
 		// Sequentially search each index, starting with the earliest in time.
 		// This could be done in parallel but more sorting would be required.
-
 		for i := len(e.indexes) - 1; i >= 0; i-- {
 			e.Logger.Printf("searching index %s", e.indexes[i].Path())
 			ids, err := e.indexes[i].Search(query)

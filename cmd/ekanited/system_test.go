@@ -11,8 +11,6 @@ import (
 
 	"github.com/ekanite/ekanite"
 	"github.com/ekanite/ekanite/input"
-	"github.com/ekanite/ekanite/input/rfc5424"
-	"github.com/ekanite/ekanite/input/types"
 )
 
 // testSystem represents a single end-to-end system.
@@ -335,12 +333,12 @@ func (s *testServer) Search(query string) (resultSlice []string, err error) {
 }
 
 type testCollector struct {
-	types.Collector
+	input.Collector
 }
 
 // NewCollector returns a new test TCP collector.
 func NewCollector(addr string) *testCollector {
-	return &testCollector{input.NewCollector("tcp", rfc5424.Tokenizer{}, addr, nil)}
+	return &testCollector{input.NewCollector("tcp", addr, nil, "syslog")}
 }
 
 type testBatcher struct {

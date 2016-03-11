@@ -3,12 +3,12 @@ package ekanite
 import (
 	"fmt"
 
-	"github.com/ekanite/ekanite/input/types"
+	"github.com/ekanite/ekanite/input"
 )
 
 // Event is a log message that can be indexed.
 type Event struct {
-	*types.Event
+	*input.Event
 }
 
 // NewEvent retuns a new Event.

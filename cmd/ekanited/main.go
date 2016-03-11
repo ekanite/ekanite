@@ -23,9 +23,6 @@ import (
 
 	"github.com/ekanite/ekanite"
 	"github.com/ekanite/ekanite/input"
-	"github.com/ekanite/ekanite/input/ecma404"
-	"github.com/ekanite/ekanite/input/rfc5424"
-	"github.com/ekanite/ekanite/input/types"
 )
 
 var (
@@ -186,12 +183,6 @@ func main() {
 		}
 	}()
 
-	// Bind input tokenizer to collector
-	var tokenizer types.Tokenizer = rfc5424.Tokenizer{}
-	if *inputType == "json" {
-		tokenizer = ecma404.Tokenizer{}
-	}
-
 	// Start TCP for collector if requested.
 	if *tcpIface != "" {
 		var tlsConfig *tls.Config
@@ -202,7 +193,7 @@ func main() {
 			}
 			log.Printf("TLS successfully configured")
 		}
-		collector := input.NewCollector("tcp", tokenizer, *tcpIface, tlsConfig)
+		collector := input.NewCollector("tcp", *tcpIface, tlsConfig, *inputType)
 		if collector == nil {
 			log.Fatalf("failed to created TCP collector bound to %s", *tcpIface)
 		}
@@ -214,7 +205,7 @@ func main() {
 
 	// Start UDP collector if requested.
 	if *udpIface != "" {
-		collector := input.NewCollector("udp", tokenizer, *udpIface, nil)
+		collector := input.NewCollector("udp", *udpIface, nil, *inputType)
 		if collector == nil {
 			log.Fatalf("failed to created UDP collector for to %s", *udpIface)
 		}
