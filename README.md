@@ -16,7 +16,7 @@ Search is implemented using the [bleve](http://www.blevesearch.com/) search libr
 ## Getting started
 The quickest way to get running on OSX and Linux is to download a pre-built release binary. You can find these binaries on the [Github releases page](https://github.com/ekanite/ekanite/releases). Once installed, you can start Ekanite like so:
 ```bash
-ekanite -datadir ~/ekanite_data
+ekanited -datadir ~/ekanite_data
 ```
 To see all Ekanite options pass `-h` to the binary.
 
