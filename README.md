@@ -20,7 +20,7 @@ ekanited -datadir ~/ekanite_data
 ```
 To see all Ekanite options pass `-h` to the binary.
 
-If you want to build Ekanite, either because you want the latest code or a pre-built binary for platform is not available, take a look at [CONTRIBUTING.md](https://github.com/ekanite/ekanite/blob/master/CONTRIBUTING.md).
+__If you want to build Ekanite__, either because you want the latest code or a pre-built binary for platform is not available, take a look at [CONTRIBUTING.md](https://github.com/ekanite/ekanite/blob/master/CONTRIBUTING.md).
 
 Sending logs to Ekanite
 ------------
