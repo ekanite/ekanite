@@ -13,58 +13,14 @@ Features include:
 
 Search is implemented using the [bleve](http://www.blevesearch.com/) search library. For some performance analysis of bleve, and of the sharding techniques used by Ekanite, check out [this post](http://www.philipotoole.com/increasing-bleve-performance-sharding/).
 
-Building
-------------
-Tested on 64-bit Kubuntu 14.04.
-
-    mkdir ~/ekanite # Or a directory of your choice.
-    cd ~/ekanite
-    export GOPATH=$PWD
-    go get github.com/ekanite/ekanite
-    go install github.com/ekanite/...
-
-Running
-------------
-The daemon will be located in the ```$GOPATH/bin``` directory. Execute
-
+## Getting started
+The quickest way to get running on OSX and Linux is to download a pre-built release binary. You can find these binaries on the [Github releases page](https://github.com/ekanite/ekanite/releases). Once installed, you can start Ekanite like so:
+```bash
+ekanite -datadir ~/ekanite_data
 ```
-$ $GOPATH/bin/ekanited -h
-ekanited [options]
-  -batchsize int
-        Indexing batch size (default 300)
-  -batchtime int
-        Indexing batch timeout, in milliseconds (default 1000)
-  -cpuprof string
-        Where to write CPU profiling data. Not written if not set
-  -datadir string
-        Set data directory (default "/var/opt/ekanite")
-  -diag string
-        expvar and pprof bind address in the form host:port. If not set, not started (default "localhost:9951")
-  -maxpending int
-        Maximum pending index events (default 1000)
-  -memprof string
-        Where to write memory profiling data. Not written if not set
-  -noreport
-        Do not report anonymous data on launch
-  -numshards int
-        Set number of shards per index (default 4)
-  -query string
-        TCP Bind address for query server in the form host:port. To disable set to empty string (default "localhost:9950")
-  -queryhttp string
-        TCP Bind address for http query server in the form host:port. To disable set to empty string (default "localhost:8080")
-  -retention string
-        Data retention period. Minimum is 24 hours (default "168h")
-  -tcp string
-        Syslog server TCP bind address in the form host:port. To disable set to empty string (default "localhost:5514")
-  -tlskey string
-        path to CA key file for TLS-enabled TCP server. If not set, TLS not activated
-  -tlspem string
-        path to CA PEM file for TLS-enabled TCP server. If not set, TLS not activated
-  -udp string
-        Syslog server UDP bind address in the form host:port. If not set, not started
-```
+To see all Ekanite options pass `-h` to the binary.
 
-for command-line options.
+If you want to build Ekanite, either because you want the latest code or a pre-built binary for platform is not available, take a look at [CONTRIBUTING.md](https://github.com/ekanite/ekanite/blob/master/CONTRIBUTING.md).
 
 Sending logs to Ekanite
 ------------
