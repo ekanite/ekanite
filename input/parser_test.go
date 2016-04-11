@@ -40,7 +40,7 @@ var (
 	}
 )
 
-func Test_Fromats(t *testing.T) {
+func Test_Formats(t *testing.T) {
 
 	var p Input
 
