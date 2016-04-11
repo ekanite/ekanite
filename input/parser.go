@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jeromer/syslogparser"
-	"github.com/jeromer/syslogparser/rfc3164"
-	"github.com/jeromer/syslogparser/rfc5424"
+	"github.com/ekanite/ekanite/input/syslog"
+	"github.com/ekanite/ekanite/input/syslog/rfc3164"
+	"github.com/ekanite/ekanite/input/syslog/rfc5424"
 )
 
 var (
