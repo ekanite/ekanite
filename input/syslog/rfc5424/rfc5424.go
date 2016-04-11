@@ -5,7 +5,7 @@ package rfc5424
 
 import (
 	"fmt"
-	"github.com/jeromer/syslogparser"
+	"github.com/ekanite/ekanite/input/syslog"
 	"math"
 	"strconv"
 	"time"
