@@ -3,7 +3,6 @@ package input
 import (
 	"encoding/json"
 	"strings"
-	"time"
 
 	"github.com/ekanite/ekanite/input/syslog"
 	"github.com/ekanite/ekanite/input/syslog/rfc3164"
@@ -66,6 +65,7 @@ func (i *Input) Parse(b []byte) (bool, map[string]interface{}) {
 	} else {
 
 		ok = i.parseJson()
+
 	}
 
 	return ok, i.Parsed
@@ -131,6 +131,13 @@ func (i *Input) parseJson() bool {
 
 	}
 
+	stats.Add("ecma404Parsed", 1)
+	return true
+
+}
+
+func (i *Input) parseTimestamp() bool {
+
 	_, ok := i.Parsed["timestamp"]
 
 	if !ok {
@@ -140,17 +147,14 @@ func (i *Input) parseJson() bool {
 
 	}
 
-	t, err := time.Parse(time.RFC3339, i.Parsed["timestamp"].(string))
+	ok, i.Parsed["timestamp"] = NewTiemstamp().Parse(i.Parsed["timestamp"].(string))
 
-	if err != nil {
+	if !ok {
 
-		stats.Add("ecma404UnparsedTimestamp", 1)
 		return false
 
 	}
 
-	i.Parsed["timestamp"] = t
-	stats.Add("ecma404Parsed", 1)
-	return false
+	return true
 
 }
