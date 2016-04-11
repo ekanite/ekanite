@@ -183,7 +183,7 @@ func main() {
 		}
 	}()
 
-	// Start TCP for collector if requested.
+	// Start TCP collector if requested.
 	if *tcpIface != "" {
 		var tlsConfig *tls.Config
 		if *caPemPath != "" && *caKeyPath != "" {
