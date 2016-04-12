@@ -2,44 +2,65 @@ package input
 
 import (
 	"encoding/json"
+	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/ekanite/ekanite/input/syslog"
-	"github.com/ekanite/ekanite/input/syslog/rfc3164"
-	"github.com/ekanite/ekanite/input/syslog/rfc5424"
 )
 
 var (
 	ok                  bool
-	FORMATS_BY_STANDARD = []string{"rfc3164", "rfc5424", "ecma404"}
-	FORMATS_BY_NAME     = []string{"syslog-bsd", "syslog", "json"}
+	FORMATS_BY_STANDARD = []string{"rfc5424", "ecma404"}
+	FORMATS_BY_NAME     = []string{"syslog", "json"}
 )
 
 type Input struct {
 	Format   string
 	Parsed   map[string]interface{}
 	Unparsed []byte
+	Matcher  *regexp.Regexp
 }
 
 type Timestamp struct {
 	Unparsed []string
-	Fromated []int64
+	Formated []int64
 	Parsed   string
 }
 
 func NewParser(f string) Input {
 
-	// remove uppercase letters and leading/trailing white spaces
-	f = strings.TrimSpace(strings.ToLower(f))
+	i := Input{}
+	i.Format = i.findFormat(strings.TrimSpace(strings.ToLower(f)))
+
+	if i.Format == "rfc5424" {
+
+		leading := `(?s)`
+		pri := `<([0-9]{1,3})>`
+		ver := `([0-9])`
+		ts := `([^ ]+)`
+		host := `([^ ]+)`
+		app := `([^ ]+)`
+		pid := `(-|[0-9]{1,5})`
+		id := `([\w-]+)`
+		msg := `(.+$)`
+
+		i.Matcher = regexp.MustCompile(leading + pri + ver + `\s` + ts + `\s` + host + `\s` + app + `\s` + pid + `\s` + id + `\s` + msg)
+
+	}
+
+	return i
+
+}
+
+func (i *Input) findFormat(f string) string {
 
 	// try to return if given format matches one of the supported formats using its common name
 	for i, v := range FORMATS_BY_NAME {
 
 		if f == v {
 
-			return Input{Format: FORMATS_BY_STANDARD[i]}
+			return FORMATS_BY_STANDARD[i]
 
 		}
 
@@ -50,19 +71,21 @@ func NewParser(f string) Input {
 
 		if f == v {
 
-			return Input{Format: v}
+			return v
 
 		}
 
 	}
 
 	// returns using "ecma404" as the default input format
-	stats.Add("invalid-input-format", 1)
-	return Input{Format: "ecma404"}
+	stats.Add("invalidParserFormat", 1)
+	return "ecma404"
 
 }
 
 func (i *Input) Parse(b []byte) (bool, map[string]interface{}) {
+
+	fmt.Println(string(b))
 
 	var ok bool
 	i.Unparsed = b
@@ -83,49 +106,40 @@ func (i *Input) Parse(b []byte) (bool, map[string]interface{}) {
 
 func (i *Input) parseSyslog() bool {
 
-	if i.Format == "rfc3164" {
+	m := i.Matcher.FindStringSubmatch(string(i.Unparsed))
 
-		p := rfc3164.NewParser(i.Unparsed)
+	if m == nil || len(m) != 9 {
 
-		if err := p.Parse(); err != nil {
-
-			stats.Add("rfc3164Unparsed", 1)
-			return false
-
-		}
-
-		stats.Add("rfc3164Parsed", 1)
-		i.mapSyslog(p.Dump())
-		return true
-
-	} else {
-
-		p := rfc5424.NewParser(i.Unparsed)
-
-		if err := p.Parse(); err != nil {
-
-			stats.Add("rfc5424Unparsed", 1)
-			return false
-
-		}
-
-		stats.Add("rfc5424Parsed", 1)
-		i.mapSyslog(p.Dump())
-		return true
+		stats.Add("rfc5424Unparsed", 1)
+		return false
 
 	}
 
-}
+	stats.Add("rfc5424Parsed", 1)
 
-func (i *Input) mapSyslog(l syslogparser.LogParts) {
+	pri, _ := strconv.Atoi(m[1])
+	ver, _ := strconv.Atoi(m[2])
 
-	i.Parsed = map[string]interface{}{}
+	var pid int
 
-	for k, v := range l {
+	if m[6] != "-" {
 
-		i.Parsed[k] = v
+		pid, _ = strconv.Atoi(m[6])
 
 	}
+
+	i.Parsed = map[string]interface{}{
+		"priority":   pri,
+		"version":    ver,
+		"timestamp":  m[3],
+		"host":       m[4],
+		"app":        m[5],
+		"pid":        pid,
+		"message_id": m[7],
+		"message":    m[8],
+	}
+
+	return true
 
 }
 
@@ -184,7 +198,7 @@ func (t *Timestamp) Parse(ts string) (bool, string) {
 
 	}
 
-	t.Parsed = time.Unix(t.Fromated[0], t.Fromated[1]).Format(time.RFC3339)
+	t.Parsed = time.Unix(t.Formated[0], t.Formated[1]).Format(time.RFC3339)
 
 	return true, t.Parsed
 
@@ -203,7 +217,7 @@ func (t *Timestamp) format() bool {
 
 		}
 
-		t.Fromated = append(t.Fromated, p)
+		t.Formated = append(t.Formated, p)
 
 	}
 
@@ -214,9 +228,9 @@ func (t *Timestamp) format() bool {
 
 func (t *Timestamp) ensureLength() {
 
-	if len(t.Fromated) == 1 {
+	if len(t.Formated) == 1 {
 
-		t.Fromated = append(t.Fromated, 0)
+		t.Formated = append(t.Formated, 0)
 
 	}
 
