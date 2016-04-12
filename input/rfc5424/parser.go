@@ -1,17 +1,22 @@
-package input
+package rfc5424
 
 import (
+	"expvar"
 	"regexp"
 	"strconv"
+
+	"github.com/ekanite/ekanite/input/types"
 )
 
-// A RFC5424Parser parses Syslog messages.
-type RFC5424Parser struct {
+var stats = expvar.NewMap("rfc404")
+
+// A Parser parses Syslog messages.
+type Parser struct {
 	regex *regexp.Regexp
 }
 
-// RFC5424Message represents a fully parsed Syslog RFC5424 message.
-type RFC5424Message struct {
+// Message represents a fully parsed Syslog message.
+type Message struct {
 	Priority  int    `json:"priority"`
 	Version   int    `json:"version"`
 	Timestamp string `json:"timestamp"`
@@ -29,8 +34,8 @@ type ApacheCommonFormat struct {
 	StatusCode int
 }
 
-// Returns an initialized RFC5424Parser.
-func NewRFC5424Parser() *RFC5424Parser {
+// Returns an initialized Parser.
+func NewParser() *Parser {
 	leading := `(?s)`
 	pri := `<([0-9]{1,3})>`
 	ver := `([0-9])`
@@ -41,7 +46,7 @@ func NewRFC5424Parser() *RFC5424Parser {
 	id := `([\w-]+)`
 	msg := `(.+$)`
 
-	p := &RFC5424Parser{}
+	p := &Parser{}
 	r := regexp.MustCompile(leading + pri + ver + `\s` + ts + `\s` + host + `\s` + app + `\s` + pid + `\s` + id + `\s` + msg)
 	p.regex = r
 
@@ -50,7 +55,7 @@ func NewRFC5424Parser() *RFC5424Parser {
 
 // Parse takes a raw message and returns a parsed message. If no match,
 // nil is returned.
-func (p *RFC5424Parser) Parse(raw string) *RFC5424Message {
+func (p *Parser) Parse(raw string) types.Message {
 	m := p.regex.FindStringSubmatch(raw)
 	if m == nil || len(m) != 9 {
 		stats.Add("unparsed", 1)
@@ -68,5 +73,10 @@ func (p *RFC5424Parser) Parse(raw string) *RFC5424Message {
 		pid, _ = strconv.Atoi(m[6])
 	}
 
-	return &RFC5424Message{pri, ver, m[3], m[4], m[5], pid, m[7], m[8]}
+	return Message{pri, ver, m[3], m[4], m[5], pid, m[7], m[8]}
+
+}
+
+func (m Message) GetTimestamp() string {
+	return m.Timestamp
 }

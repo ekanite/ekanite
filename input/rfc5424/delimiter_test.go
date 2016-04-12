@@ -1,4 +1,4 @@
-package input
+package rfc5424
 
 import (
 	"testing"

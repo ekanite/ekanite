@@ -22,6 +22,9 @@ import (
 
 	"github.com/ekanite/ekanite"
 	"github.com/ekanite/ekanite/input"
+	"github.com/ekanite/ekanite/input/ecma404"
+	"github.com/ekanite/ekanite/input/rfc5424"
+	"github.com/ekanite/ekanite/input/types"
 )
 
 var (
@@ -32,6 +35,7 @@ var (
 var datadir string
 var tcpIface string
 var udpIface string
+var inputType string
 var caPemPath string
 var caKeyPath string
 var queryIface string
@@ -59,6 +63,7 @@ const (
 	DefaultHTTPQueryAddr   = "localhost:8080"
 	DefaultDiagsIface      = "localhost:9951"
 	DefaultTCPServer       = "localhost:5514"
+	DefaultInputType       = "syslog"
 )
 
 func main() {
@@ -68,8 +73,9 @@ func main() {
 		batchSize       = fs.Int("batchsize", DefaultBatchSize, "Indexing batch size")
 		batchTimeout    = fs.Int("batchtime", DefaultBatchTimeout, "Indexing batch timeout, in milliseconds")
 		indexMaxPending = fs.Int("maxpending", DefaultIndexMaxPending, "Maximum pending index events")
-		tcpIface        = fs.String("tcp", DefaultTCPServer, "Syslog server TCP bind address in the form host:port. To disable set to empty string")
-		udpIface        = fs.String("udp", "", "Syslog server UDP bind address in the form host:port. If not set, not started")
+		tcpIface        = fs.String("tcp", DefaultTCPServer, "Server TCP bind address in the form host:port. To disable set to empty string")
+		udpIface        = fs.String("udp", "", "Server UDP bind address in the form host:port. If not set, not started")
+		inputType       = fs.String("input", DefaultInputType, "Input type format. Chose between syslog and JSON.")
 		diagIface       = fs.String("diag", DefaultDiagsIface, "expvar and pprof bind address in the form host:port. If not set, not started")
 		caPemPath       = fs.String("tlspem", "", "path to CA PEM file for TLS-enabled TCP server. If not set, TLS not activated")
 		caKeyPath       = fs.String("tlskey", "", "path to CA key file for TLS-enabled TCP server. If not set, TLS not activated")
@@ -177,7 +183,13 @@ func main() {
 		}
 	}()
 
-	// Start TCP collector if requested.
+	// Bind input tokenizer to collector
+	var tokenizer types.Tokenizer = rfc5424.Tokenizer{}
+	if *inputType == "json" {
+		tokenizer = ecma404.Tokenizer{}
+	}
+
+	// Start TCP for collector if requested.
 	if *tcpIface != "" {
 		var tlsConfig *tls.Config
 		if *caPemPath != "" && *caKeyPath != "" {
@@ -187,8 +199,7 @@ func main() {
 			}
 			log.Printf("TLS successfully configured")
 		}
-
-		collector := input.NewCollector("tcp", *tcpIface, tlsConfig)
+		collector := input.NewCollector("tcp", tokenizer, *tcpIface, tlsConfig)
 		if collector == nil {
 			log.Fatalf("failed to created TCP collector bound to %s", *tcpIface)
 		}
@@ -200,7 +211,7 @@ func main() {
 
 	// Start UDP collector if requested.
 	if *udpIface != "" {
-		collector := input.NewCollector("udp", *udpIface, nil)
+		collector := input.NewCollector("udp", tokenizer, *udpIface, nil)
 		if collector == nil {
 			log.Fatalf("failed to created UDP collector for to %s", *udpIface)
 		}

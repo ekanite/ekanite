@@ -11,6 +11,8 @@ import (
 
 	"github.com/ekanite/ekanite"
 	"github.com/ekanite/ekanite/input"
+	"github.com/ekanite/ekanite/input/rfc5424"
+	"github.com/ekanite/ekanite/input/types"
 )
 
 // testSystem represents a single end-to-end system.
@@ -21,7 +23,7 @@ type testSystem struct {
 	c *testCollector
 }
 
-// NewSystem returns a funtioning ingestion, indexing, and search system.
+// NewSystem returns a functioning ingestion, indexing, and search system.
 func NewSystem(path string) *testSystem {
 	// Clear out any existing data from previous test calls.
 	os.RemoveAll(path)
@@ -333,12 +335,12 @@ func (s *testServer) Search(query string) (resultSlice []string, err error) {
 }
 
 type testCollector struct {
-	input.Collector
+	types.Collector
 }
 
 // NewCollector returns a new test TCP collector.
 func NewCollector(addr string) *testCollector {
-	return &testCollector{input.NewCollector("tcp", addr, nil)}
+	return &testCollector{input.NewCollector("tcp", rfc5424.Tokenizer{}, addr, nil)}
 }
 
 type testBatcher struct {

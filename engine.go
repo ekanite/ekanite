@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ekanite/ekanite/input"
+	"github.com/ekanite/ekanite/input/types"
 )
 
 // Engine defaults
@@ -42,7 +42,7 @@ type Batcher struct {
 	size     int
 	duration time.Duration
 
-	c chan *input.Event
+	c chan *types.Event
 }
 
 // NewBatcher returns a Batcher for EventIndexer e, a batching size of sz, a maximum duration
@@ -52,7 +52,7 @@ func NewBatcher(e EventIndexer, sz int, dur time.Duration, max int) *Batcher {
 		indexer:  e,
 		size:     sz,
 		duration: dur,
-		c:        make(chan *input.Event, max),
+		c:        make(chan *types.Event, max),
 	}
 }
 
@@ -102,7 +102,7 @@ func (b *Batcher) Start(errChan chan<- error) error {
 }
 
 // C returns the channel on the batcher to which events should be sent.
-func (b *Batcher) C() chan<- *input.Event {
+func (b *Batcher) C() chan<- *types.Event {
 	return b.c
 }
 
