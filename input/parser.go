@@ -2,7 +2,6 @@ package input
 
 import (
 	"encoding/json"
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -84,8 +83,6 @@ func (i *Input) findFormat(f string) string {
 }
 
 func (i *Input) Parse(b []byte) (bool, map[string]interface{}) {
-
-	fmt.Println(string(b))
 
 	var ok bool
 	i.Unparsed = b
