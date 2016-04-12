@@ -21,7 +21,7 @@ type testSystem struct {
 	c *testCollector
 }
 
-// NewSystem returns a funtioning ingestion, indexing, and search system.
+// NewSystem returns a functioning ingestion, indexing, and search system.
 func NewSystem(path string) *testSystem {
 	// Clear out any existing data from previous test calls.
 	os.RemoveAll(path)
@@ -157,7 +157,7 @@ func Test_EndToEnd(t *testing.T) {
 
 		ingestConn := sys.IngestConn()
 		for _, e := range tt.events {
-			en := e + "\n"
+			en := fmt.Sprintf("%d:%s", len(e), e)
 			n, err := ingestConn.Write([]byte(en))
 			if err != nil {
 				t.Fatalf("failed to write '%s' to Collector: %s", e, err.Error())
@@ -200,7 +200,8 @@ func Test_AllInOrder(t *testing.T) {
 
 	lines := make([]string, 1000)
 	for n := 0; n < len(lines); n++ {
-		lines[n] = fmt.Sprintf("<33>5 %s test.com cron 304 - password accepted %d", time.Unix(int64(n), 0).UTC().Format(time.RFC3339), n)
+		line := fmt.Sprintf("<33>5 %s test.com cron 304 - password accepted %d", time.Unix(int64(n), 0).UTC().Format(time.RFC3339), n)
+		lines[n] = fmt.Sprintf("%d:%s", len(line), line)
 	}
 
 	sys := NewSystem(path)
@@ -338,7 +339,7 @@ type testCollector struct {
 
 // NewCollector returns a new test TCP collector.
 func NewCollector(addr string) *testCollector {
-	return &testCollector{input.NewCollector("tcp", addr, nil)}
+	return &testCollector{input.NewCollector("tcp", addr, nil, "syslog")}
 }
 
 type testBatcher struct {

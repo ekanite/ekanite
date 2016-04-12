@@ -32,6 +32,7 @@ var (
 var datadir string
 var tcpIface string
 var udpIface string
+var inputType string
 var caPemPath string
 var caKeyPath string
 var queryIface string
@@ -59,6 +60,7 @@ const (
 	DefaultHTTPQueryAddr   = "localhost:8080"
 	DefaultDiagsIface      = "localhost:9951"
 	DefaultTCPServer       = "localhost:5514"
+	DefaultInputType       = "syslog"
 )
 
 func main() {
@@ -68,8 +70,9 @@ func main() {
 		batchSize       = fs.Int("batchsize", DefaultBatchSize, "Indexing batch size")
 		batchTimeout    = fs.Int("batchtime", DefaultBatchTimeout, "Indexing batch timeout, in milliseconds")
 		indexMaxPending = fs.Int("maxpending", DefaultIndexMaxPending, "Maximum pending index events")
-		tcpIface        = fs.String("tcp", DefaultTCPServer, "Syslog server TCP bind address in the form host:port. To disable set to empty string")
-		udpIface        = fs.String("udp", "", "Syslog server UDP bind address in the form host:port. If not set, not started")
+		tcpIface        = fs.String("tcp", DefaultTCPServer, "Server TCP bind address in the form host:port. To disable set to empty string")
+		udpIface        = fs.String("udp", "", "Server UDP bind address in the form host:port. If not set, not started")
+		inputType       = fs.String("input", DefaultInputType, "Input type format. Chose between syslog and JSON.")
 		diagIface       = fs.String("diag", DefaultDiagsIface, "expvar and pprof bind address in the form host:port. If not set, not started")
 		caPemPath       = fs.String("tlspem", "", "path to CA PEM file for TLS-enabled TCP server. If not set, TLS not activated")
 		caKeyPath       = fs.String("tlskey", "", "path to CA key file for TLS-enabled TCP server. If not set, TLS not activated")
@@ -187,8 +190,7 @@ func main() {
 			}
 			log.Printf("TLS successfully configured")
 		}
-
-		collector := input.NewCollector("tcp", *tcpIface, tlsConfig)
+		collector := input.NewCollector("tcp", *tcpIface, tlsConfig, *inputType)
 		if collector == nil {
 			log.Fatalf("failed to created TCP collector bound to %s", *tcpIface)
 		}
@@ -200,7 +202,7 @@ func main() {
 
 	// Start UDP collector if requested.
 	if *udpIface != "" {
-		collector := input.NewCollector("udp", *udpIface, nil)
+		collector := input.NewCollector("udp", *udpIface, nil, *inputType)
 		if collector == nil {
 			log.Fatalf("failed to created UDP collector for to %s", *udpIface)
 		}
