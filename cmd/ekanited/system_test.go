@@ -1,6 +1,6 @@
 package main_test
 
-/*import (
+import (
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -68,31 +68,31 @@ func Test_EndToEnd(t *testing.T) {
 		},
 		{
 			name:     "query after single event ingestion",
-			events:   []string{"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - password accepted"},
+			events:   []string{"<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - password accepted"},
 			query:    "password",
-			expected: []string{"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - password accepted"}, // Only the message, right? Hmmm.
+			expected: []string{"<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - password accepted"}, // Only the message, right? Hmmm.
 		},
 		{
 			name:     "query after second event ingestion, single match only",
-			events:   []string{"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - password rejected"},
+			events:   []string{"<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - password rejected"},
 			query:    "rejected",
-			expected: []string{"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - password rejected"},
+			expected: []string{"<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - password rejected"},
 		},
 		{
 			name:  "query only second event ingestion, both should match",
 			query: "password",
 			expected: []string{
-				"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - password accepted",
-				"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - password rejected",
+				"<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - password accepted",
+				"<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - password rejected",
 			},
 		},
 		{
 			name:   "query after third event ingestion, double match only",
-			events: []string{"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - root access denied"},
+			events: []string{"<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - root access denied"},
 			query:  "password",
 			expected: []string{
-				"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - password accepted",
-				"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - password rejected",
+				"<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - password accepted",
+				"<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - password rejected",
 			},
 		},
 		{
@@ -106,36 +106,36 @@ func Test_EndToEnd(t *testing.T) {
 			name:  "query 'GET' which should match 2 events",
 			reset: true,
 			events: []string{
-				"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - GET /wp-content/uploads/2012/03/steelhead_cloud_accelerator_saas_diagram.jpg",
-				"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - GET /wp-includes/images/smilies/frownie.png HTTP/1.1",
-				"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - POST /log-includes/images/smilies/frownie.png HTTP/1.1",
+				"<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - GET /wp-content/uploads/2012/03/steelhead_cloud_accelerator_saas_diagram.jpg",
+				"<33>5 1985-04-12T23:21:50.52Z test.com cron 304 - GET /wp-includes/images/smilies/frownie.png HTTP/1.1",
+				"<33>5 1985-04-12T23:22:50.52Z test.com cron 304 - POST /log-includes/images/smilies/frownie.png HTTP/1.1",
 			},
 			query: "GET",
 			expected: []string{
-				"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - GET /wp-content/uploads/2012/03/steelhead_cloud_accelerator_saas_diagram.jpg",
-				"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - GET /wp-includes/images/smilies/frownie.png HTTP/1.1",
+				"<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - GET /wp-content/uploads/2012/03/steelhead_cloud_accelerator_saas_diagram.jpg",
+				"<33>5 1985-04-12T23:21:50.52Z test.com cron 304 - GET /wp-includes/images/smilies/frownie.png HTTP/1.1",
 			},
 		},
 		{
 			name:  "query 'wp' which should match 2 events",
 			query: "wp",
 			expected: []string{
-				"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - GET /wp-content/uploads/2012/03/steelhead_cloud_accelerator_saas_diagram.jpg",
-				"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - GET /wp-includes/images/smilies/frownie.png HTTP/1.1",
+				"<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - GET /wp-content/uploads/2012/03/steelhead_cloud_accelerator_saas_diagram.jpg",
+				"<33>5 1985-04-12T23:21:50.52Z test.com cron 304 - GET /wp-includes/images/smilies/frownie.png HTTP/1.1",
 			},
 		},
 		{
 			name:  "query 'content' which should match 1 event",
 			query: "content",
 			expected: []string{
-				"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - GET /wp-content/uploads/2012/03/steelhead_cloud_accelerator_saas_diagram.jpg",
+				"<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - GET /wp-content/uploads/2012/03/steelhead_cloud_accelerator_saas_diagram.jpg",
 			},
 		},
 		{
 			name:  "query 'steelhead' which should match 1 event",
 			query: "steelhead",
 			expected: []string{
-				"<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - GET /wp-content/uploads/2012/03/steelhead_cloud_accelerator_saas_diagram.jpg",
+				"<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - GET /wp-content/uploads/2012/03/steelhead_cloud_accelerator_saas_diagram.jpg",
 			},
 		},
 	}
@@ -157,7 +157,7 @@ func Test_EndToEnd(t *testing.T) {
 
 		ingestConn := sys.IngestConn()
 		for _, e := range tt.events {
-			en := e + "\n"
+			en := fmt.Sprintf("%d:%s", len(e), e)
 			n, err := ingestConn.Write([]byte(en))
 			if err != nil {
 				t.Fatalf("failed to write '%s' to Collector: %s", e, err.Error())
@@ -200,8 +200,8 @@ func Test_AllInOrder(t *testing.T) {
 
 	lines := make([]string, 1000)
 	for n := 0; n < len(lines); n++ {
-		line := fmt.Sprintf("<33>5 2003-10-11T22:14:15.003Z test.com cron 304 - password accepted %d", n)
-		lines[n] = string(len(line)) + ":" + line
+		line := fmt.Sprintf("<33>5 %s test.com cron 304 - password accepted %d", time.Unix(int64(n), 0).UTC().Format(time.RFC3339), n)
+		lines[n] = fmt.Sprintf("%d:%s", len(line), line)
 	}
 
 	sys := NewSystem(path)
@@ -247,11 +247,11 @@ func Test_AllInOrderShards(t *testing.T) {
 
 	// Lines in order they should be returned in results.
 	lines := []string{
-		`<134>0 2003-10-11T22:14:15.003Z fisher apache-access - - 65.98.59.154 - - [05/May/2015:23:50:12 +0000] "GET /wp-login.php HTTP/1.0" 200 206 "-" "-"`,
-		`<134>0 2003-10-11T22:14:15.003Z fisher apache-access - - 104.140.83.221 - - [06/May/2015:01:24:40 +0000] "GET /wp-login.php?action=register HTTP/1.0" 200 206 "http://www.philipotoole.com/" "Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12.388 Version/12.17"`,
-		`<134>0 2003-10-11T22:14:15.003Z fisher apache-access - - 104.140.83.221 - - [06/May/2015:01:24:40 +0000] "GET /wp-login.php?action=register HTTP/1.1" 200 243 "http://www.philipotoole.com/wp-login.php?action=register" "Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12.388 Version/12.17"`,
-		`<134>0 2003-10-11T22:14:15.003Z fisher apache-access - - 184.68.20.22 - - [06/May/2015:02:47:51 +0000] "GET /wp-login.php HTTP/1.1" 200 243 "-" "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/24.0.1309.0 Safari/537.17"`,
-		`<134>0 22003-10-11T22:14:15.003Z fisher apache-access - - 193.104.41.186 - - [06/May/2015:04:20:46 +0000] "POST /wp-login.php HTTP/1.1" 200 206 "-" "Opera 10.00"`,
+		`<134>0 2015-05-05T23:50:17.025568+00:00 fisher apache-access - - 65.98.59.154 - - [05/May/2015:23:50:12 +0000] "GET /wp-login.php HTTP/1.0" 200 206 "-" "-"`,
+		`<134>0 2015-05-06T01:24:41.232890+00:00 fisher apache-access - - 104.140.83.221 - - [06/May/2015:01:24:40 +0000] "GET /wp-login.php?action=register HTTP/1.0" 200 206 "http://www.philipotoole.com/" "Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12.388 Version/12.17"`,
+		`<134>0 2015-05-06T01:24:41.232895+00:00 fisher apache-access - - 104.140.83.221 - - [06/May/2015:01:24:40 +0000] "GET /wp-login.php?action=register HTTP/1.1" 200 243 "http://www.philipotoole.com/wp-login.php?action=register" "Opera/9.80 (Windows NT 6.2; Win64; x64) Presto/2.12.388 Version/12.17"`,
+		`<134>0 2015-05-06T02:47:54.612953+00:00 fisher apache-access - - 184.68.20.22 - - [06/May/2015:02:47:51 +0000] "GET /wp-login.php HTTP/1.1" 200 243 "-" "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/24.0.1309.0 Safari/537.17"`,
+		`<134>0 2015-05-06T04:20:49.008609+00:00 fisher apache-access - - 193.104.41.186 - - [06/May/2015:04:20:46 +0000] "POST /wp-login.php HTTP/1.1" 200 206 "-" "Opera 10.00"`,
 	}
 
 	sys := NewSystem(path)
@@ -359,4 +359,3 @@ func tempPath() string {
 	os.Remove(path)
 	return path
 }
-*/
