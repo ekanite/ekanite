@@ -32,6 +32,7 @@ type Collector interface {
 // TCPCollector represents a network collector that accepts and handler TCP connections.
 type TCPCollector struct {
 	iface  string
+	fmt    string
 	parser *RFC5424Parser
 
 	addr      net.Addr
@@ -41,17 +42,19 @@ type TCPCollector struct {
 // UDPCollector represents a network collector that accepts UDP packets.
 type UDPCollector struct {
 	addr   *net.UDPAddr
+	fmt    string
 	parser *RFC5424Parser
 }
 
 // NewCollector returns a network collector of the specified type, that will bind
 // to the given inteface on Start(). If config is non-nil, a secure Collector will
 // be returned. Secure Collectors require the protocol be TCP.
-func NewCollector(proto, iface string, tlsConfig *tls.Config) Collector {
+func NewCollector(proto, iface string, tlsConfig *tls.Config, format string) Collector {
 	parser := NewRFC5424Parser()
 	if strings.ToLower(proto) == "tcp" {
 		return &TCPCollector{
 			iface:     iface,
+			fmt:       format,
 			parser:    parser,
 			tlsConfig: tlsConfig,
 		}
@@ -61,7 +64,7 @@ func NewCollector(proto, iface string, tlsConfig *tls.Config) Collector {
 			return nil
 		}
 
-		return &UDPCollector{addr: addr, parser: parser}
+		return &UDPCollector{addr: addr, fmt: format, parser: parser}
 	}
 	return nil
 }

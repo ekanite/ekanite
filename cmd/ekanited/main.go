@@ -43,6 +43,7 @@ var numShards int
 var retentionPeriod string
 var cpuProfile string
 var memProfile string
+var inputFormat string
 
 // Flag set
 var fs *flag.FlagSet
@@ -59,6 +60,7 @@ const (
 	DefaultHTTPQueryAddr   = "localhost:8080"
 	DefaultDiagsIface      = "localhost:9951"
 	DefaultTCPServer       = "localhost:5514"
+	DefaultInputFormat     = "syslog"
 )
 
 func main() {
@@ -79,6 +81,7 @@ func main() {
 		retentionPeriod = fs.String("retention", DefaultRetentionPeriod, "Data retention period. Minimum is 24 hours")
 		cpuProfile      = fs.String("cpuprof", "", "Where to write CPU profiling data. Not written if not set")
 		memProfile      = fs.String("memprof", "", "Where to write memory profiling data. Not written if not set")
+		inputFormat     = fs.String("input", DefaultInputFormat, "Message format of input.")
 	)
 	fs.Usage = printHelp
 	fs.Parse(os.Args[1:])
@@ -188,7 +191,7 @@ func main() {
 			log.Printf("TLS successfully configured")
 		}
 
-		collector := input.NewCollector("tcp", *tcpIface, tlsConfig)
+		collector := input.NewCollector("tcp", *tcpIface, tlsConfig, *inputFormat)
 		if collector == nil {
 			log.Fatalf("failed to created TCP collector bound to %s", *tcpIface)
 		}
@@ -200,7 +203,7 @@ func main() {
 
 	// Start UDP collector if requested.
 	if *udpIface != "" {
-		collector := input.NewCollector("udp", *udpIface, nil)
+		collector := input.NewCollector("udp", *udpIface, nil, *inputFormat)
 		if collector == nil {
 			log.Fatalf("failed to created UDP collector for to %s", *udpIface)
 		}
