@@ -205,7 +205,7 @@ func main() {
 	if *udpIface != "" {
 		collector, err := input.NewCollector("udp", *udpIface, *inputFormat, nil)
 		if collector == nil {
-			log.Fatalf("failed to create UDP collector: %S", err.Error())
+			log.Fatalf("failed to create UDP collector: %s", err.Error())
 		}
 		if err := collector.Start(batcher.C()); err != nil {
 			log.Fatalf("failed to start UDP collector: %s", err.Error())
