@@ -81,7 +81,7 @@ func main() {
 		retentionPeriod = fs.String("retention", DefaultRetentionPeriod, "Data retention period. Minimum is 24 hours")
 		cpuProfile      = fs.String("cpuprof", "", "Where to write CPU profiling data. Not written if not set")
 		memProfile      = fs.String("memprof", "", "Where to write memory profiling data. Not written if not set")
-		inputFormat     = fs.String("input", DefaultInputFormat, "Message format of input.")
+		inputFormat     = fs.String("input", DefaultInputFormat, "Message format of input (only syslog supported)")
 	)
 	fs.Usage = printHelp
 	fs.Parse(os.Args[1:])
