@@ -43,6 +43,7 @@ var numShards int
 var retentionPeriod string
 var cpuProfile string
 var memProfile string
+var inputFormat string
 
 // Flag set
 var fs *flag.FlagSet
