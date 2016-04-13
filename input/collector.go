@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/tls"
 	"expvar"
+	"fmt"
 	"io"
 	"net"
 	"strings"
@@ -49,24 +50,28 @@ type UDPCollector struct {
 // NewCollector returns a network collector of the specified type, that will bind
 // to the given inteface on Start(). If config is non-nil, a secure Collector will
 // be returned. Secure Collectors require the protocol be TCP.
-func NewCollector(proto, iface string, tlsConfig *tls.Config, format string) Collector {
+func NewCollector(proto, iface, format string, tlsConfig *tls.Config) (Collector, error) {
 	parser := NewRFC5424Parser()
+	if format != "syslog" {
+		return nil, fmt.Errorf("unsupported collector format")
+	}
+
 	if strings.ToLower(proto) == "tcp" {
 		return &TCPCollector{
 			iface:     iface,
 			fmt:       format,
 			parser:    parser,
 			tlsConfig: tlsConfig,
-		}
+		}, nil
 	} else if strings.ToLower(proto) == "udp" {
 		addr, err := net.ResolveUDPAddr("udp", iface)
 		if err != nil {
-			return nil
+			return nil, err
 		}
 
-		return &UDPCollector{addr: addr, fmt: format, parser: parser}
+		return &UDPCollector{addr: addr, fmt: format, parser: parser}, nil
 	}
-	return nil
+	return nil, fmt.Errorf("unsupport collector protocol")
 }
 
 // Start instructs the TCPCollector to bind to the interface and accept connections.

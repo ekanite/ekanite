@@ -191,9 +191,9 @@ func main() {
 			log.Printf("TLS successfully configured")
 		}
 
-		collector := input.NewCollector("tcp", *tcpIface, tlsConfig, *inputFormat)
-		if collector == nil {
-			log.Fatalf("failed to created TCP collector bound to %s", *tcpIface)
+		collector, err := input.NewCollector("tcp", *tcpIface, *inputFormat, tlsConfig)
+		if err != nil {
+			log.Fatalf("failed to create TCP collector: %s", err.Error())
 		}
 		if err := collector.Start(batcher.C()); err != nil {
 			log.Fatalf("failed to start TCP collector: %s", err.Error())
@@ -203,9 +203,9 @@ func main() {
 
 	// Start UDP collector if requested.
 	if *udpIface != "" {
-		collector := input.NewCollector("udp", *udpIface, nil, *inputFormat)
+		collector, err := input.NewCollector("udp", *udpIface, *inputFormat, nil)
 		if collector == nil {
-			log.Fatalf("failed to created UDP collector for to %s", *udpIface)
+			log.Fatalf("failed to create UDP collector: %S", err.Error())
 		}
 		if err := collector.Start(batcher.C()); err != nil {
 			log.Fatalf("failed to start UDP collector: %s", err.Error())

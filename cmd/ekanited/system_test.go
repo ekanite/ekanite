@@ -338,7 +338,11 @@ type testCollector struct {
 
 // NewCollector returns a new test TCP collector.
 func NewCollector(addr string) *testCollector {
-	return &testCollector{input.NewCollector("tcp", addr, nil, "syslog")}
+	collector, err := input.NewCollector("tcp", addr, "syslog", nil)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create test collector: %s", err.Error()))
+	}
+	return &testCollector{collector}
 }
 
 type testBatcher struct {
