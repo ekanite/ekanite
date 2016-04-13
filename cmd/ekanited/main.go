@@ -59,6 +59,7 @@ const (
 	DefaultHTTPQueryAddr   = "localhost:8080"
 	DefaultDiagsIface      = "localhost:9951"
 	DefaultTCPServer       = "localhost:5514"
+	DefaultInputFormat     = "syslog"
 )
 
 func main() {
@@ -79,6 +80,7 @@ func main() {
 		retentionPeriod = fs.String("retention", DefaultRetentionPeriod, "Data retention period. Minimum is 24 hours")
 		cpuProfile      = fs.String("cpuprof", "", "Where to write CPU profiling data. Not written if not set")
 		memProfile      = fs.String("memprof", "", "Where to write memory profiling data. Not written if not set")
+		_               = fs.String("input", DefaultInputFormat, "Message format of input.")
 	)
 	fs.Usage = printHelp
 	fs.Parse(os.Args[1:])
