@@ -10,6 +10,8 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/ekanite/ekanite/input/delimiter"
 )
 
 var sequenceNumber int64
@@ -32,9 +34,14 @@ type Collector interface {
 
 // TCPCollector represents a network collector that accepts and handler TCP connections.
 type TCPCollector struct {
-	iface  string
-	fmt    string
-	parser *RFC5424Parser
+	iface        string
+	channel      chan<- *Event
+	conn         net.Conn
+	fmt          string
+	parser       *RFC5424Parser
+	delimiter    *delimiter.Delimiter
+	fDelimiter   *delimiter.FallbackDelimiter
+	fallbackMode bool
 
 	addr      net.Addr
 	tlsConfig *tls.Config
@@ -51,17 +58,18 @@ type UDPCollector struct {
 // to the given inteface on Start(). If config is non-nil, a secure Collector will
 // be returned. Secure Collectors require the protocol be TCP.
 func NewCollector(proto, iface, format string, tlsConfig *tls.Config) (Collector, error) {
-	parser := NewRFC5424Parser()
 	if format != "syslog" {
 		return nil, fmt.Errorf("unsupported collector format")
 	}
-
 	if strings.ToLower(proto) == "tcp" {
 		return &TCPCollector{
-			iface:     iface,
-			fmt:       format,
-			parser:    parser,
-			tlsConfig: tlsConfig,
+			iface:        iface,
+			fmt:          format,
+			parser:       NewRFC5424Parser(),
+			delimiter:    delimiter.NewDelimiter(),
+			fDelimiter:   delimiter.NewFallbackDelimiter(msgBufSize),
+			tlsConfig:    tlsConfig,
+			fallbackMode: false,
 		}, nil
 	} else if strings.ToLower(proto) == "udp" {
 		addr, err := net.ResolveUDPAddr("udp", iface)
@@ -69,7 +77,7 @@ func NewCollector(proto, iface, format string, tlsConfig *tls.Config) (Collector
 			return nil, err
 		}
 
-		return &UDPCollector{addr: addr, fmt: format, parser: parser}, nil
+		return &UDPCollector{addr: addr, fmt: format, parser: NewRFC5424Parser()}, nil
 	}
 	return nil, fmt.Errorf("unsupport collector protocol")
 }
@@ -108,45 +116,95 @@ func (s *TCPCollector) Addr() net.Addr {
 
 func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
 	stats.Add("tcpConnections", 1)
+	s.conn = conn
+	s.channel = c
 	defer func() {
 		stats.Add("tcpConnections", -1)
-		conn.Close()
+		s.conn.Close()
 	}()
-
-	delimiter := NewDelimiter(msgBufSize)
 	reader := bufio.NewReader(conn)
-	var log string
-	var match bool
-
 	for {
 		conn.SetReadDeadline(time.Now().Add(newlineTimeout))
 		b, err := reader.ReadByte()
 		if err != nil {
 			stats.Add("tcpConnReadError", 1)
-			if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
-				stats.Add("tcpConnReadTimeout", 1)
-				log, match = delimiter.Vestige()
-			} else if err == io.EOF {
-				stats.Add("tcpConnReadEOF", 1)
-				log, match = delimiter.Vestige()
-			} else {
-				stats.Add("tcpConnUnrecoverError", 1)
+			if !s.recover(err) {
 				return
 			}
 		} else {
 			stats.Add("tcpBytesRead", 1)
-			log, match = delimiter.Push(b)
-		}
-		if match {
-			stats.Add("tcpEventsRx", 1)
-			c <- &Event{
-				Text:          log,
-				Parsed:        s.parser.Parse(log),
-				ReceptionTime: time.Now().UTC(),
-				Sequence:      atomic.AddInt64(&sequenceNumber, 1),
-				SourceIP:      conn.RemoteAddr().String(),
+			if s.fallbackMode {
+				s.useFallbackDelimiter(b)
+			} else {
+				s.useDelimiter(b)
 			}
 		}
+	}
+}
+
+// Takes use of the standard delimiter
+// and switches to the fallback delimiter in case
+// of occuring errors.
+func (s *TCPCollector) useDelimiter(b byte) {
+	match, err := s.delimiter.Push(b)
+	if err != nil {
+		s.fallbackMode = true
+		s.delimiter.Reset()
+		if s.delimiter.Result != "" {
+			for i := 0; i < len(s.delimiter.Result); i++ {
+				s.useFallbackDelimiter(s.delimiter.Result[i])
+			}
+		} else {
+			s.useFallbackDelimiter(b)
+		}
+	}
+	if match {
+		stats.Add("tcpEventsRx", 1)
+		s.forwardLog(s.delimiter.Result)
+	}
+}
+
+// Takes use of the fallback delimiter.
+func (s *TCPCollector) useFallbackDelimiter(b byte) {
+	log, match := s.fDelimiter.Push(b)
+	if match {
+		stats.Add("tcpEventsRx", 1)
+		s.forwardLog(log)
+	}
+}
+
+// Tries to revover from occuring network errors.
+func (s *TCPCollector) recover(err error) bool {
+	if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
+		stats.Add("tcpConnReadTimeout", 1)
+	} else if err == io.EOF {
+		stats.Add("tcpConnReadEOF", 1)
+	} else {
+		stats.Add("tcpConnUnrecoverError", 1)
+		return false
+	}
+	if !s.fallbackMode {
+		s.delimiter.Reset()
+		for i := 0; i < len(s.delimiter.Result); i++ {
+			s.useFallbackDelimiter(s.delimiter.Result[i])
+		}
+	} else {
+		log, match := s.fDelimiter.Vestige()
+		if match {
+			s.forwardLog(log)
+		}
+	}
+	return true
+}
+
+// Sends the parsed log via the provided channel.
+func (s *TCPCollector) forwardLog(log string) {
+	s.channel <- &Event{
+		Text:          log,
+		Parsed:        s.parser.Parse(log),
+		ReceptionTime: time.Now().UTC(),
+		Sequence:      atomic.AddInt64(&sequenceNumber, 1),
+		SourceIP:      s.conn.RemoteAddr().String(),
 	}
 }
 
