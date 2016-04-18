@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"strconv"
+	"sync"
 )
 
 const (
@@ -14,11 +15,12 @@ const (
 
 var (
 	err        error
-	brokenErr  = errors.New("broken")
-	lenIncErr  = errors.New("length-buffer-incomplete")
-	lenInvErr  = errors.New("length-buffer-invalid-byte")
-	lenConvErr = errors.New("length-buffer-conversion-error")
-	valIncErr  = errors.New("value-buffer-incomplete")
+	mutex      *sync.Mutex = &sync.Mutex{}
+	brokenErr              = errors.New("broken")
+	lenIncErr              = errors.New("length-buffer-incomplete")
+	lenInvErr              = errors.New("length-buffer-invalid-byte")
+	lenConvErr             = errors.New("length-buffer-conversion-error")
+	valIncErr              = errors.New("value-buffer-incomplete")
 )
 
 // A Delimiter detects when message lines start.
@@ -51,7 +53,9 @@ func (d *Delimiter) Push(b byte) (bool, error) {
 
 // Resets the instance close to its initial state.
 func (d *Delimiter) Reset() {
+	mutex.Lock()
 	d.useLenBuff()
+	mutex.Unlock()
 }
 
 // Checks rather a byte must be processed as "length byte"

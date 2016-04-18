@@ -8,14 +8,18 @@ import (
 	"io"
 	"net"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/ekanite/ekanite/input/delimiter"
 )
 
-var sequenceNumber int64
-var stats = expvar.NewMap("input")
+var (
+	sequenceNumber int64
+	stats                      = expvar.NewMap("input")
+	mutex          *sync.Mutex = &sync.Mutex{}
+)
 
 func init() {
 	sequenceNumber = time.Now().UnixNano()
@@ -35,8 +39,8 @@ type Collector interface {
 // TCPCollector represents a network collector that accepts and handler TCP connections.
 type TCPCollector struct {
 	iface          string
-	channel        chan<- *Event
 	connRemoteAddr string
+	channel        chan<- *Event
 	fmt            string
 	parser         *RFC5424Parser
 	delimiter      *delimiter.Delimiter
@@ -116,8 +120,10 @@ func (s *TCPCollector) Addr() net.Addr {
 
 func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
 	stats.Add("tcpConnections", 1)
+	mutex.Lock()
 	s.connRemoteAddr = conn.RemoteAddr().String()
 	s.channel = c
+	mutex.Unlock()
 	defer func() {
 		stats.Add("tcpConnections", -1)
 		conn.Close()
@@ -184,10 +190,12 @@ func (s *TCPCollector) recover(err error) bool {
 		return false
 	}
 	if !s.fallbackMode {
+		mutex.Lock()
 		s.delimiter.Reset()
 		for i := 0; i < len(s.delimiter.Result); i++ {
 			s.useFallbackDelimiter(s.delimiter.Result[i])
 		}
+		mutex.Unlock()
 	} else {
 		log, match := s.fDelimiter.Vestige()
 		if match {
@@ -199,6 +207,7 @@ func (s *TCPCollector) recover(err error) bool {
 
 // Sends the parsed log via the provided channel.
 func (s *TCPCollector) forwardLog(log string) {
+	mutex.Lock()
 	s.channel <- &Event{
 		Text:          log,
 		Parsed:        s.parser.Parse(log),
@@ -206,6 +215,7 @@ func (s *TCPCollector) forwardLog(log string) {
 		Sequence:      atomic.AddInt64(&sequenceNumber, 1),
 		SourceIP:      s.connRemoteAddr,
 	}
+	mutex.Unlock()
 }
 
 // Start instructs the UDPCollector to start reading packets from the interface.
