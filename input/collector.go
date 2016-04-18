@@ -34,14 +34,14 @@ type Collector interface {
 
 // TCPCollector represents a network collector that accepts and handler TCP connections.
 type TCPCollector struct {
-	iface        string
-	channel      chan<- *Event
-	conn         net.Conn
-	fmt          string
-	parser       *RFC5424Parser
-	delimiter    *delimiter.Delimiter
-	fDelimiter   *delimiter.FallbackDelimiter
-	fallbackMode bool
+	iface          string
+	channel        chan<- *Event
+	connRemoteAddr string
+	fmt            string
+	parser         *RFC5424Parser
+	delimiter      *delimiter.Delimiter
+	fDelimiter     *delimiter.FallbackDelimiter
+	fallbackMode   bool
 
 	addr      net.Addr
 	tlsConfig *tls.Config
@@ -116,11 +116,11 @@ func (s *TCPCollector) Addr() net.Addr {
 
 func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
 	stats.Add("tcpConnections", 1)
-	s.conn = conn
+	s.connRemoteAddr = conn.RemoteAddr().String()
 	s.channel = c
 	defer func() {
 		stats.Add("tcpConnections", -1)
-		s.conn.Close()
+		conn.Close()
 	}()
 	reader := bufio.NewReader(conn)
 	for {
@@ -204,7 +204,7 @@ func (s *TCPCollector) forwardLog(log string) {
 		Parsed:        s.parser.Parse(log),
 		ReceptionTime: time.Now().UTC(),
 		Sequence:      atomic.AddInt64(&sequenceNumber, 1),
-		SourceIP:      s.conn.RemoteAddr().String(),
+		SourceIP:      s.connRemoteAddr,
 	}
 }
 
