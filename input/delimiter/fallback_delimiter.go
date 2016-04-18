@@ -1,4 +1,4 @@
-package input
+package delimiter
 
 import (
 	"regexp"
@@ -19,23 +19,23 @@ func init() {
 	runRegex = regexp.MustCompile(`\n` + SYSLOG_DELIMITER)
 }
 
-// A Delimiter detects when Syslog lines start.
-type Delimiter struct {
+// A FallbackDelimiter detects when Syslog lines start.
+type FallbackDelimiter struct {
 	buffer []byte
 	regex  *regexp.Regexp
 }
 
-// NewDelimiter returns an initialized Delimiter.
-func NewDelimiter(maxSize int) *Delimiter {
-	self := &Delimiter{}
+// NewFallbackDelimiter returns an initialized FallbackDelimiter.
+func NewFallbackDelimiter(maxSize int) *FallbackDelimiter {
+	self := &FallbackDelimiter{}
 	self.buffer = make([]byte, 0, maxSize)
 	self.regex = startRegex
 	return self
 }
 
-// Push a byte into the Delimiter. If the byte results in a
+// Push a byte into the FallbackDelimiter. If the byte results in a
 // a new Syslog message, it'll be flagged via the bool.
-func (self *Delimiter) Push(b byte) (string, bool) {
+func (self *FallbackDelimiter) Push(b byte) (string, bool) {
 	self.buffer = append(self.buffer, b)
 	delimiter := self.regex.FindIndex(self.buffer)
 	if delimiter == nil {
@@ -55,10 +55,10 @@ func (self *Delimiter) Push(b byte) (string, bool) {
 	return dispatch, true
 }
 
-// Vestige returns the bytes which have been pushed to Delimiter, since
+// Vestige returns the bytes which have been pushed to FallbackDelimiter, since
 // the last Syslog message was returned, but only if the buffer appears
 // to be a valid syslog message.
-func (self *Delimiter) Vestige() (string, bool) {
+func (self *FallbackDelimiter) Vestige() (string, bool) {
 	delimiter := syslogRegex.FindIndex(self.buffer)
 	if delimiter == nil {
 		self.buffer = nil

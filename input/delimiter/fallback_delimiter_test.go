@@ -1,14 +1,14 @@
-package input
+package delimiter
 
 import (
 	"testing"
 )
 
 /*
- * Delimiter tests.
+ * FallbackDelimiter tests.
  */
 
-func Test_Delimiter(t *testing.T) {
+func Test_FallbackDelimiter(t *testing.T) {
 	tests := []struct {
 		name     string
 		line     string
@@ -42,7 +42,7 @@ func Test_Delimiter(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		d := NewDelimiter(256)
+		d := NewFallbackDelimiter(256)
 		events := []string{}
 
 		for _, b := range tt.line {
@@ -64,7 +64,7 @@ func Test_Delimiter(t *testing.T) {
 	}
 }
 
-func TestDelimiter_Vestige(t *testing.T) {
+func TestFallbackDelimiter_Vestige(t *testing.T) {
 	tests := []struct {
 		name           string
 		line           string
@@ -98,7 +98,7 @@ func TestDelimiter_Vestige(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		d := NewDelimiter(256)
+		d := NewFallbackDelimiter(256)
 		for _, c := range tt.line {
 			d.Push(byte(c))
 		}

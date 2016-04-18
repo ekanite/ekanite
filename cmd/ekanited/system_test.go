@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -157,12 +158,12 @@ func Test_EndToEnd(t *testing.T) {
 
 		ingestConn := sys.IngestConn()
 		for _, e := range tt.events {
-			en := e + "\n"
-			n, err := ingestConn.Write([]byte(en))
+			line := PackageLog(e)
+			n, err := ingestConn.Write([]byte(line))
 			if err != nil {
 				t.Fatalf("failed to write '%s' to Collector: %s", e, err.Error())
 			}
-			if n != len(en) {
+			if n != len(line) {
 				t.Fatalf("insufficient bytes written to Collector, exp: %d, wrote: %d", len(e), n)
 			}
 			expectedCount++
@@ -206,7 +207,59 @@ func Test_AllInOrder(t *testing.T) {
 	sys := NewSystem(path)
 	ingestConn := sys.IngestConn()
 	for _, l := range lines {
-		ln := l + "\n"
+		ln := PackageLog(l)
+		n, err := ingestConn.Write([]byte(ln))
+		if err != nil {
+			t.Fatalf("failed to write '%s' to Collector: %s", l, err.Error())
+		}
+		if n != len(ln) {
+			t.Fatalf("insufficient bytes written to Collector, exp: %d, wrote: %d", len(l), n)
+		}
+	}
+
+	sys.e.waitForCount(uint64(len(lines)))
+
+	query := "password"
+	results, err := sys.s.Search(query)
+	if err != nil {
+		t.Fatalf("failed to execute search query '%s': %s", query, err.Error())
+	}
+
+	if len(results) != len(lines) {
+		t.Fatalf("wrong number of results received for query, exp %d, got %d", len(lines), len(results))
+	}
+
+	// Compare each result.
+	for i := range results {
+		if lines[i] != results[i] {
+			t.Errorf("result %d is wrong, exp: '%s', got: '%s'", i, lines[i], results[i])
+		}
+	}
+}
+
+// Test_AllInOrder_UsingFallbackDelim tests that a large number of log messages,
+// delimited by the fallback delimiter, are returned in the correct order.
+func Test_AllInOrder_UsingFallbackDelim(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+	path := tempPath()
+	defer os.RemoveAll(path)
+
+	lines := make([]string, 1000)
+	for n := 0; n < len(lines); n++ {
+		lines[n] = fmt.Sprintf("<33>5 %s test.com cron 304 - password accepted %d", time.Unix(int64(n), 0).UTC().Format(time.RFC3339), n)
+	}
+
+	sys := NewSystem(path)
+	ingestConn := sys.IngestConn()
+	var ln string
+	for i, l := range lines {
+		if i < 500 {
+			ln = PackageLog(l)
+		} else {
+			ln = l + "\n"
+		}
 		n, err := ingestConn.Write([]byte(ln))
 		if err != nil {
 			t.Fatalf("failed to write '%s' to Collector: %s", l, err.Error())
@@ -256,7 +309,7 @@ func Test_AllInOrderShards(t *testing.T) {
 	sys := NewSystem(path)
 	ingestConn := sys.IngestConn()
 	for _, l := range lines {
-		ln := l + "\n"
+		ln := PackageLog(l)
 		n, err := ingestConn.Write([]byte(ln))
 		if err != nil {
 			t.Fatalf("failed to write '%s' to Collector: %s", l, err.Error())
@@ -361,4 +414,8 @@ func tempPath() string {
 	f.Close()
 	os.Remove(path)
 	return path
+}
+
+func PackageLog(raw string) string {
+	return fmt.Sprintf("%s:%s;", strconv.Itoa(len(raw)), raw)
 }
