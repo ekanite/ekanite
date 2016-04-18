@@ -29,14 +29,16 @@ var tests TestCases = TestCases{
 	},
 	"invalid length": TestCase{
 		raw:    "19a:bc",
-		errors: []string{"length-buffer-conversion-error", "broken", "broken"},
+		errors: []string{"length-buffer-invalid-byte", "broken", "broken", "broken"},
 	},
 	"missing length": TestCase{
-		raw: "I...",
+		raw:    "I...",
+		errors: []string{"length-buffer-invalid-byte", "broken", "broken", "broken"},
 	},
 	"missing semicolon": TestCase{
-		raw:     "19:I am a test string.30:And this is a test string too!",
+		raw:     "19:I am a test string.30:A...",
 		results: []string{"I am a test string.", ""},
+		errors:  []string{"length-buffer-invalid-byte", "broken", "broken"},
 	},
 	"length too short": TestCase{
 		raw:      "18:I am a test string.30:A",
@@ -60,6 +62,7 @@ var tests TestCases = TestCases{
 	},
 }
 
+// Test_Delimiter checks, rather each .Push call returns the expected.
 func Test_Delimiter(t *testing.T) {
 	for n, tc := range tests {
 		tc.delimiter = NewDelimiter()
@@ -98,8 +101,9 @@ func (tc *TestCase) checkMissingResults(t *testing.T) {
 }
 
 func (tc *TestCase) checkErr(err error, t *testing.T) {
-	if tc.errors == nil {
+	if len(tc.errors)-1 < tc.errorsIndex {
 		t.Errorf("\ndelimiter returned unexpected error: '%v'\n", err)
+		return
 	}
 	if tc.errors[tc.errorsIndex] != err.Error() {
 		t.Errorf("\nexpected error: %v (index: %d)\nreturned error: %v\n", tc.errors[tc.errorsIndex], tc.errorsIndex, err.Error())

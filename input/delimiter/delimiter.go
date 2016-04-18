@@ -13,7 +13,12 @@ const (
 )
 
 var (
-	err error
+	err        error
+	brokenErr  = errors.New("broken")
+	lenIncErr  = errors.New("length-buffer-incomplete")
+	lenInvErr  = errors.New("length-buffer-invalid-byte")
+	lenConvErr = errors.New("length-buffer-conversion-error")
+	valIncErr  = errors.New("value-buffer-incomplete")
 )
 
 // A Delimiter detects when message lines start.
@@ -44,7 +49,7 @@ func (d *Delimiter) Push(b byte) (bool, error) {
 	return d.processByte(b)
 }
 
-// Restes the instance close to its initial state.
+// Resets the instance close to its initial state.
 func (d *Delimiter) Reset() {
 	d.useLenBuff()
 }
@@ -64,11 +69,25 @@ func (d *Delimiter) processLenByte(b byte) (bool, error) {
 	if b == LenBuffEnd[0] {
 		return NoResult, d.useValBuff()
 	}
-	if err = d.lenBuff.WriteByte(b); err != nil {
-		d.brokenMode = true
-		return NoResult, errors.New("length-buffer-incomplete")
+	if d.checkLenByte(b) {
+		if err = d.lenBuff.WriteByte(b); err != nil {
+			d.brokenMode = true
+			return NoResult, lenIncErr
+		}
+		return NoResult, nil
 	}
-	return NoResult, nil
+	d.brokenMode = true
+	return NoResult, lenInvErr
+}
+
+// Checks rather the current byte is a digit.
+func (d *Delimiter) checkLenByte(b byte) bool {
+	for i := 0; i < 10; i++ {
+		if strconv.Itoa(i)[0] == b {
+			return true
+		}
+	}
+	return false
 }
 
 // Writes the passed byte to the "value buffer",
@@ -86,7 +105,7 @@ func (d *Delimiter) processValByte(b byte) (bool, error) {
 	// the current "value buffer" gets ignored.
 	if err = d.valBuff.WriteByte(b); err != nil {
 		d.ignoreMode = true
-		return NoResult, errors.New("value-buffer-incomplete")
+		return NoResult, valIncErr
 	}
 	return NoResult, nil
 }
@@ -108,7 +127,7 @@ func (d *Delimiter) useLenBuff() {
 func (d *Delimiter) useValBuff() error {
 	if d.valBuffLen, err = strconv.Atoi(d.lenBuff.String()); err != nil {
 		d.brokenMode = true
-		return errors.New("length-buffer-conversion-error")
+		return lenConvErr
 	}
 	d.lenBuff.Reset()
 	d.valBuffMode = true
