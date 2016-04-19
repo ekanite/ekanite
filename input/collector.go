@@ -2,6 +2,7 @@ package input
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/tls"
 	"expvar"
 	"fmt"
@@ -10,6 +11,8 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/ekanite/ekanite/input/parser"
 )
 
 var sequenceNumber int64
@@ -33,8 +36,7 @@ type Collector interface {
 // TCPCollector represents a network collector that accepts and handler TCP connections.
 type TCPCollector struct {
 	iface  string
-	fmt    string
-	parser *RFC5424Parser
+	parser *parser.Parser
 
 	addr      net.Addr
 	tlsConfig *tls.Config
@@ -43,24 +45,21 @@ type TCPCollector struct {
 // UDPCollector represents a network collector that accepts UDP packets.
 type UDPCollector struct {
 	addr   *net.UDPAddr
-	fmt    string
-	parser *RFC5424Parser
+	parser *parser.Parser
 }
 
 // NewCollector returns a network collector of the specified type, that will bind
 // to the given inteface on Start(). If config is non-nil, a secure Collector will
 // be returned. Secure Collectors require the protocol be TCP.
 func NewCollector(proto, iface, format string, tlsConfig *tls.Config) (Collector, error) {
-	parser := NewRFC5424Parser()
-	if format != "syslog" {
+	if !parser.IsFmt(format) {
 		return nil, fmt.Errorf("unsupported collector format")
 	}
 
 	if strings.ToLower(proto) == "tcp" {
 		return &TCPCollector{
 			iface:     iface,
-			fmt:       format,
-			parser:    parser,
+			parser:    parser.NewParser(format),
 			tlsConfig: tlsConfig,
 		}, nil
 	} else if strings.ToLower(proto) == "udp" {
@@ -69,7 +68,7 @@ func NewCollector(proto, iface, format string, tlsConfig *tls.Config) (Collector
 			return nil, err
 		}
 
-		return &UDPCollector{addr: addr, fmt: format, parser: parser}, nil
+		return &UDPCollector{addr: addr, parser: parser.NewParser(format)}, nil
 	}
 	return nil, fmt.Errorf("unsupport collector protocol")
 }
@@ -139,12 +138,14 @@ func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
 		}
 		if match {
 			stats.Add("tcpEventsRx", 1)
-			c <- &Event{
-				Text:          log,
-				Parsed:        s.parser.Parse(log),
-				ReceptionTime: time.Now().UTC(),
-				Sequence:      atomic.AddInt64(&sequenceNumber, 1),
-				SourceIP:      conn.RemoteAddr().String(),
+			if s.parser.Parse(bytes.NewBufferString(log).Bytes()) {
+				c <- &Event{
+					Text:          string(s.parser.Raw),
+					Parsed:        s.parser.Result,
+					ReceptionTime: time.Now().UTC(),
+					Sequence:      atomic.AddInt64(&sequenceNumber, 1),
+					SourceIP:      conn.RemoteAddr().String(),
+				}
 			}
 		}
 	}
@@ -166,14 +167,16 @@ func (s *UDPCollector) Start(c chan<- *Event) error {
 				continue
 			}
 			log := strings.Trim(string(buf[:n]), "\r\n")
-			stats.Add("udpEventsRx", 1)
-			c <- &Event{
-				Text:          log,
-				Parsed:        s.parser.Parse(log),
-				ReceptionTime: time.Now().UTC(),
-				Sequence:      atomic.AddInt64(&sequenceNumber, 1),
-				SourceIP:      addr.String(),
+			if s.parser.Parse(bytes.NewBufferString(log).Bytes()) {
+				c <- &Event{
+					Text:          log,
+					Parsed:        s.parser.Result,
+					ReceptionTime: time.Now().UTC(),
+					Sequence:      atomic.AddInt64(&sequenceNumber, 1),
+					SourceIP:      addr.String(),
+				}
 			}
+			stats.Add("udpEventsRx", 1)
 		}
 	}()
 	return nil
