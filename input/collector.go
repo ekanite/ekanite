@@ -10,6 +10,8 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/ekanite/ekanite/input/delimiter"
 )
 
 var sequenceNumber int64
