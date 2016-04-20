@@ -10,6 +10,8 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/ekanite/ekanite/input/delimiter"
 )
 
 var sequenceNumber int64
@@ -113,7 +115,7 @@ func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
 		conn.Close()
 	}()
 
-	delimiter := NewDelimiter(msgBufSize)
+	delimiter := delimiter.NewFallbackDelimiter(msgBufSize)
 	reader := bufio.NewReader(conn)
 	var log string
 	var match bool
