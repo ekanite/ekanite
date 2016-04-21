@@ -12,6 +12,7 @@ var (
 	fmtsByName     = []string{"syslog"}
 )
 
+// Returns if the given format matches one of the possible formats.
 func IsFmt(format string) bool {
 	for _, f := range append(fmtsByStandard, fmtsByName...) {
 		if f == format {
@@ -21,6 +22,7 @@ func IsFmt(format string) bool {
 	return false
 }
 
+// A Parser parses the raw input as a map with a timestamp field.
 type Parser struct {
 	fmt     string
 	Raw     []byte
@@ -28,6 +30,7 @@ type Parser struct {
 	rfc5424 *Rfc5424
 }
 
+// New Parser returns a new Parser instance.
 func NewParser(f string) *Parser {
 	p := &Parser{}
 	p.detectFmt(strings.TrimSpace(strings.ToLower(f)))
@@ -35,6 +38,7 @@ func NewParser(f string) *Parser {
 	return p
 }
 
+// Reads the given format and detects its internal name.
 func (p *Parser) detectFmt(f string) {
 	for i, v := range fmtsByName {
 		if f == v {
@@ -53,6 +57,7 @@ func (p *Parser) detectFmt(f string) {
 	return
 }
 
+// Parses the given byte slice.
 func (p *Parser) Parse(b []byte) bool {
 	p.Result = map[string]interface{}{}
 	p.Raw = b
