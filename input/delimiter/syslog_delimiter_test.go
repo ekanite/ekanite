@@ -5,10 +5,10 @@ import (
 )
 
 /*
- * FallbackDelimiter tests.
+ * SyslogDelimiter tests.
  */
 
-func Test_FallbackDelimiter(t *testing.T) {
+func Test_SyslogDelimiter(t *testing.T) {
 	tests := []struct {
 		name     string
 		line     string
@@ -42,7 +42,7 @@ func Test_FallbackDelimiter(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		d := NewFallbackDelimiter(256)
+		d := NewSyslogDelimiter(256)
 		events := []string{}
 
 		for _, b := range tt.line {
@@ -64,7 +64,7 @@ func Test_FallbackDelimiter(t *testing.T) {
 	}
 }
 
-func TestFallbackDelimiter_Vestige(t *testing.T) {
+func TestSyslogDelimiter_Vestige(t *testing.T) {
 	tests := []struct {
 		name           string
 		line           string
@@ -98,7 +98,7 @@ func TestFallbackDelimiter_Vestige(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		d := NewFallbackDelimiter(256)
+		d := NewSyslogDelimiter(256)
 		for _, c := range tt.line {
 			d.Push(byte(c))
 		}
