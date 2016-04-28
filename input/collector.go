@@ -52,7 +52,7 @@ type UDPCollector struct {
 // to the given inteface on Start(). If config is non-nil, a secure Collector will
 // be returned. Secure Collectors require the protocol be TCP.
 func NewCollector(proto, iface, format string, tlsConfig *tls.Config) (Collector, error) {
-	if !parser.IsFmt(format) {
+	if !parser.HasFmt(format) {
 		return nil, fmt.Errorf("unsupported collector format")
 	}
 

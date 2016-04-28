@@ -12,8 +12,8 @@ var (
 	fmtsByName     = []string{"syslog"}
 )
 
-// Returns if the given format matches one of the possible formats.
-func IsFmt(format string) bool {
+// HasFmt returns if the given format matches one of the possible formats.
+func HasFmt(format string) bool {
 	for _, f := range append(fmtsByStandard, fmtsByName...) {
 		if f == format {
 			return true
@@ -30,7 +30,7 @@ type Parser struct {
 	rfc5424 *Rfc5424
 }
 
-// New Parser returns a new Parser instance.
+// NewParser returns a new Parser instance.
 func NewParser(f string) *Parser {
 	p := &Parser{}
 	p.detectFmt(strings.TrimSpace(strings.ToLower(f)))
@@ -57,7 +57,7 @@ func (p *Parser) detectFmt(f string) {
 	return
 }
 
-// Parses the given byte slice.
+// Parse the given byte slice.
 func (p *Parser) Parse(b []byte) bool {
 	p.Result = map[string]interface{}{}
 	p.Raw = b
