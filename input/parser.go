@@ -1,13 +1,10 @@
-package parser
+package input
 
 import (
-	"expvar"
 	"strings"
 )
 
 var (
-	err            error
-	stats          = expvar.NewMap("parser")
 	fmtsByStandard = []string{"rfc5424"}
 	fmtsByName     = []string{"syslog"}
 )

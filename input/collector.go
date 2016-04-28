@@ -11,8 +11,6 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
-
-	"github.com/ekanite/ekanite/input/parser"
 )
 
 var sequenceNumber int64
@@ -36,7 +34,7 @@ type Collector interface {
 // TCPCollector represents a network collector that accepts and handler TCP connections.
 type TCPCollector struct {
 	iface  string
-	parser *parser.Parser
+	parser *Parser
 
 	addr      net.Addr
 	tlsConfig *tls.Config
@@ -45,21 +43,21 @@ type TCPCollector struct {
 // UDPCollector represents a network collector that accepts UDP packets.
 type UDPCollector struct {
 	addr   *net.UDPAddr
-	parser *parser.Parser
+	parser *Parser
 }
 
 // NewCollector returns a network collector of the specified type, that will bind
 // to the given inteface on Start(). If config is non-nil, a secure Collector will
 // be returned. Secure Collectors require the protocol be TCP.
 func NewCollector(proto, iface, format string, tlsConfig *tls.Config) (Collector, error) {
-	if !parser.HasFmt(format) {
+	if !HasFmt(format) {
 		return nil, fmt.Errorf("unsupported collector format")
 	}
 
 	if strings.ToLower(proto) == "tcp" {
 		return &TCPCollector{
 			iface:     iface,
-			parser:    parser.NewParser(format),
+			parser:    NewParser(format),
 			tlsConfig: tlsConfig,
 		}, nil
 	} else if strings.ToLower(proto) == "udp" {
@@ -68,7 +66,7 @@ func NewCollector(proto, iface, format string, tlsConfig *tls.Config) (Collector
 			return nil, err
 		}
 
-		return &UDPCollector{addr: addr, parser: parser.NewParser(format)}, nil
+		return &UDPCollector{addr: addr, parser: NewParser(format)}, nil
 	}
 	return nil, fmt.Errorf("unsupport collector protocol")
 }

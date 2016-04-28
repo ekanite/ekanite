@@ -1,29 +1,29 @@
-package parser
+package input
 
 import (
 	"bytes"
 	"testing"
 )
 
-type TestCases []TestCase
+type ParserTestCases []ParserTestCase
 
-type TestCase struct {
+type ParserTestCase struct {
 	fmt   string
 	fail  bool
-	tests map[string]string
+	parserTests map[string]string
 }
 
-var tests = TestCases{
-	TestCase{
+var parserTests = ParserTestCases{
+	ParserTestCase{
 		fmt: "syslog",
-		tests: map[string]string{
+		parserTests: map[string]string{
 			"syslog like message": `<34>1 2003-10-11T22:14:15.003Z mymachine.example.com su - ID47 - BOM'su root' failed for lonvick on /dev/pts/8`,
 		},
 	},
-	TestCase{
+	ParserTestCase{
 		fmt:  "syslog",
 		fail: true,
-		tests: map[string]string{
+		parserTests: map[string]string{
 			"missing PRI (priority)": `1 2003-10-11T22:14:15.003Z mymachine.example.com su - ID47 - BOM'su root' failed for lonvick on /dev/pts/8`,
 			"missing timestamp":      `<34>1 mymachine.example.com su - ID47 - BOM'su root' failed for lonvick on /dev/pts/8`,
 		},
@@ -58,17 +58,17 @@ func Test_Formats(t *testing.T) {
 }
 
 func Test_Parsing(t *testing.T) {
-	for _, tc := range tests {
+	for _, tc := range parserTests {
 		tc.printTitle(t)
 		p := NewParser(tc.fmt)
-		for k, v := range tc.tests {
+		for k, v := range tc.parserTests {
 			t.Logf("using %s:\n", k)
 			tc.determFailure(p.Parse(bytes.NewBufferString(v).Bytes()), t)
 		}
 	}
 }
 
-func (tc *TestCase) printTitle(t *testing.T) {
+func (tc *ParserTestCase) printTitle(t *testing.T) {
 	var status string
 	if !tc.fail {
 		status = "success"
@@ -78,7 +78,7 @@ func (tc *TestCase) printTitle(t *testing.T) {
 	t.Logf("testing %s (%s)\n", tc.fmt, status)
 }
 
-func (tc *TestCase) determFailure(ok bool, t *testing.T) {
+func (tc *ParserTestCase) determFailure(ok bool, t *testing.T) {
 	if tc.fail {
 		if ok {
 			t.Error("\n\nParser should fail.\n")
