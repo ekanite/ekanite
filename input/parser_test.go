@@ -8,8 +8,8 @@ import (
 type ParserTestCases []ParserTestCase
 
 type ParserTestCase struct {
-	fmt   string
-	fail  bool
+	fmt         string
+	fail        bool
 	parserTests map[string]string
 }
 
