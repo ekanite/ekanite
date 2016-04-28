@@ -19,23 +19,23 @@ func init() {
 	runRegex = regexp.MustCompile(`\n` + SYSLOG_DELIMITER)
 }
 
-// A Delimiter detects when Syslog lines start.
-type Delimiter struct {
+// A SyslogDelimiter detects when Syslog lines start.
+type SyslogDelimiter struct {
 	buffer []byte
 	regex  *regexp.Regexp
 }
 
-// NewDelimiter returns an initialized Delimiter.
-func NewDelimiter(maxSize int) *Delimiter {
-	self := &Delimiter{}
+// NewSyslogDelimiter returns an initialized SyslogDelimiter.
+func NewSyslogDelimiter(maxSize int) *SyslogDelimiter {
+	self := &SyslogDelimiter{}
 	self.buffer = make([]byte, 0, maxSize)
 	self.regex = startRegex
 	return self
 }
 
-// Push a byte into the Delimiter. If the byte results in a
+// Push a byte into the SyslogDelimiter. If the byte results in a
 // a new Syslog message, it'll be flagged via the bool.
-func (self *Delimiter) Push(b byte) (string, bool) {
+func (self *SyslogDelimiter) Push(b byte) (string, bool) {
 	self.buffer = append(self.buffer, b)
 	delimiter := self.regex.FindIndex(self.buffer)
 	if delimiter == nil {
@@ -55,10 +55,10 @@ func (self *Delimiter) Push(b byte) (string, bool) {
 	return dispatch, true
 }
 
-// Vestige returns the bytes which have been pushed to Delimiter, since
+// Vestige returns the bytes which have been pushed to SyslogDelimiter, since
 // the last Syslog message was returned, but only if the buffer appears
 // to be a valid syslog message.
-func (self *Delimiter) Vestige() (string, bool) {
+func (self *SyslogDelimiter) Vestige() (string, bool) {
 	delimiter := syslogRegex.FindIndex(self.buffer)
 	if delimiter == nil {
 		self.buffer = nil
