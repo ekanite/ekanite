@@ -42,8 +42,9 @@ func NewNetstrDelimiter() *NetstrDelimiter {
 	}
 }
 
-// Returns rather a new result is available
-// and the first occurring error (if any occurred).
+// Push the given byte into a buffer,
+// and return rather a new result is available,
+// as well as the first occurring error (if any occurred).
 func (d *NetstrDelimiter) Push(b byte) (bool, error) {
 	if d.brokenMode {
 		return NoResult, errors.New("broken")
@@ -51,7 +52,7 @@ func (d *NetstrDelimiter) Push(b byte) (bool, error) {
 	return d.processByte(b)
 }
 
-// Resets the instance close to its initial state.
+// Reset the instance close to its initial state.
 func (d *NetstrDelimiter) Reset() {
 	mutex.Lock()
 	d.useLenBuff()
