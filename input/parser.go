@@ -9,8 +9,8 @@ var (
 	fmtsByName     = []string{"syslog"}
 )
 
-// HasFmt returns if the given format matches one of the possible formats.
-func HasFmt(format string) bool {
+// ValidFormat returns if the given format matches one of the possible formats.
+func ValidFormat(format string) bool {
 	for _, f := range append(fmtsByStandard, fmtsByName...) {
 		if f == format {
 			return true
