@@ -1,105 +1,243 @@
 package input
 
-import "testing"
+import (
+	"bytes"
+	"reflect"
+	"testing"
+)
 
-/*
- * RFC5424 parser tests
- */
+func Test_Formats(t *testing.T) {
+	var p *Parser
+	mismatched := func(rtrnd string, intnd string, intndA string) {
+		if intndA != "" {
+			t.Fatalf("Parser format %v does not match the intended format %v.\n", rtrnd, intnd)
+		}
+		t.Fatalf("Parser format %v does not match the intended format %v (same as: %v).\n", rtrnd, intndA, intnd)
+	}
+	for i, f := range fmtsByName {
+		p = NewParser(f)
+		if p.fmt != fmtsByStandard[i] {
+			mismatched(p.fmt, f, fmtsByStandard[i])
+		}
+	}
+	for _, f := range fmtsByStandard {
+		p = NewParser(f)
+		if p.fmt != f {
+			mismatched(p.fmt, f, "")
+		}
+	}
+	p = NewParser("unknown-format")
+	if p.fmt != fmtsByStandard[0] {
+		mismatched(p.fmt, fmtsByStandard[0], "")
+	}
+}
 
-func Test_SuccessfulRFC5424Parsing(t *testing.T) {
-	p := NewRFC5424Parser()
-
+func Test_Parsing(t *testing.T) {
 	tests := []struct {
+		fmt      string
 		message  string
-		expected RFC5424Message
+		expected map[string]interface{}
+		fail     bool
 	}{
 		{
-			message:  "<134>1 2003-08-24T05:14:15.000003-07:00 ubuntu sshd 1999 - password accepted",
-			expected: RFC5424Message{Priority: 134, Version: 1, Timestamp: "2003-08-24T05:14:15.000003-07:00", Host: "ubuntu", App: "sshd", Pid: 1999, MsgId: "-", Message: "password accepted"},
+			fmt:     "syslog",
+			message: `<134>1 2003-08-24T05:14:15.000003-07:00 ubuntu sshd 1999 - password accepted`,
+			expected: map[string]interface{}{
+				"priority":   134,
+				"version":    1,
+				"timestamp":  "2003-08-24T05:14:15.000003-07:00",
+				"host":       "ubuntu",
+				"app":        "sshd",
+				"pid":        1999,
+				"message_id": "-",
+				"message":    "password accepted",
+			},
 		},
 		{
-			message:  "<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - password accepted",
-			expected: RFC5424Message{Priority: 33, Version: 5, Timestamp: "1985-04-12T23:20:50.52Z", Host: "test.com", App: "cron", Pid: 304, MsgId: "-", Message: "password accepted"},
+			fmt:     "syslog",
+			message: `<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - password accepted`,
+			expected: map[string]interface{}{
+				"priority":   33,
+				"version":    5,
+				"timestamp":  "1985-04-12T23:20:50.52Z",
+				"host":       "test.com",
+				"app":        "cron",
+				"pid":        304,
+				"message_id": "-",
+				"message":    "password accepted",
+			},
 		},
 		{
-			message:  "<1>0 1985-04-12T19:20:50.52-04:00 test.com cron 65535 - password accepted",
-			expected: RFC5424Message{Priority: 1, Version: 0, Timestamp: "1985-04-12T19:20:50.52-04:00", Host: "test.com", App: "cron", Pid: 65535, MsgId: "-", Message: "password accepted"},
+			fmt:     "syslog",
+			message: `<1>0 1985-04-12T19:20:50.52-04:00 test.com cron 65535 - password accepted`,
+			expected: map[string]interface{}{
+				"priority":   1,
+				"version":    0,
+				"timestamp":  "1985-04-12T19:20:50.52-04:00",
+				"host":       "test.com",
+				"app":        "cron",
+				"pid":        65535,
+				"message_id": "-",
+				"message":    "password accepted",
+			},
 		},
 		{
-			message:  "<1>0 2003-10-11T22:14:15.003Z test.com cron 65535 msgid1234 password accepted",
-			expected: RFC5424Message{Priority: 1, Version: 0, Timestamp: "2003-10-11T22:14:15.003Z", Host: "test.com", App: "cron", Pid: 65535, MsgId: "msgid1234", Message: "password accepted"},
+			fmt:     "syslog",
+			message: `<1>0 2003-10-11T22:14:15.003Z test.com cron 65535 msgid1234 password accepted`,
+			expected: map[string]interface{}{
+				"priority":   1,
+				"version":    0,
+				"timestamp":  "2003-10-11T22:14:15.003Z",
+				"host":       "test.com",
+				"app":        "cron",
+				"pid":        65535,
+				"message_id": "msgid1234",
+				"message":    "password accepted",
+			},
 		},
 		{
-			message:  "<1>0 2003-08-24T05:14:15.000003-07:00 test.com cron 65535 - JVM NPE\nsome_file.java:48\n\tsome_other_file.java:902",
-			expected: RFC5424Message{Priority: 1, Version: 0, Timestamp: "2003-08-24T05:14:15.000003-07:00", Host: "test.com", App: "cron", Pid: 65535, MsgId: "-", Message: "JVM NPE\nsome_file.java:48\n\tsome_other_file.java:902"},
+			fmt:     "syslog",
+			message: `<1>0 2003-08-24T05:14:15.000003-07:00 test.com cron 65535 - JVM NPE\nsome_file.java:48\n\tsome_other_file.java:902`,
+			expected: map[string]interface{}{
+				"priority":   1,
+				"version":    0,
+				"timestamp":  "2003-08-24T05:14:15.000003-07:00",
+				"host":       "test.com",
+				"app":        "cron",
+				"pid":        65535,
+				"message_id": "-",
+				"message":    `JVM NPE\nsome_file.java:48\n\tsome_other_file.java:902`,
+			},
 		},
 		{
-			message:  "<27>1 2015-03-02T22:53:45-08:00 localhost.localdomain puppet-agent 5334 - mirrorurls.extend(list(self.metalink_data.urls()))",
-			expected: RFC5424Message{Priority: 27, Version: 1, Timestamp: "2015-03-02T22:53:45-08:00", Host: "localhost.localdomain", App: "puppet-agent", Pid: 5334, MsgId: "-", Message: "mirrorurls.extend(list(self.metalink_data.urls()))"},
+			fmt:     "syslog",
+			message: `<27>1 2015-03-02T22:53:45-08:00 localhost.localdomain puppet-agent 5334 - mirrorurls.extend(list(self.metalink_data.urls()))`,
+			expected: map[string]interface{}{
+				"priority":   27,
+				"version":    1,
+				"timestamp":  "2015-03-02T22:53:45-08:00",
+				"host":       "localhost.localdomain",
+				"app":        "puppet-agent",
+				"pid":        5334,
+				"message_id": "-",
+				"message":    "mirrorurls.extend(list(self.metalink_data.urls()))",
+			},
 		},
 		{
-			message:  "<29>1 2015-03-03T06:49:08-08:00 localhost.localdomain puppet-agent 51564 - (/Stage[main]/Users_prd/Ssh_authorized_key[1063-username]) Dependency Group[group] has failures: true",
-			expected: RFC5424Message{Priority: 29, Version: 1, Timestamp: "2015-03-03T06:49:08-08:00", Host: "localhost.localdomain", App: "puppet-agent", Pid: 51564, MsgId: "-", Message: "(/Stage[main]/Users_prd/Ssh_authorized_key[1063-username]) Dependency Group[group] has failures: true"},
+			fmt:     "syslog",
+			message: `<29>1 2015-03-03T06:49:08-08:00 localhost.localdomain puppet-agent 51564 - (/Stage[main]/Users_prd/Ssh_authorized_key[1063-username]) Dependency Group[group] has failures: true`,
+			expected: map[string]interface{}{
+				"priority":   29,
+				"version":    1,
+				"timestamp":  "2015-03-03T06:49:08-08:00",
+				"host":       "localhost.localdomain",
+				"app":        "puppet-agent",
+				"pid":        51564,
+				"message_id": "-",
+				"message":    "(/Stage[main]/Users_prd/Ssh_authorized_key[1063-username]) Dependency Group[group] has failures: true",
+			},
 		},
 		{
-			message:  "<142>1 2015-03-02T22:23:07-08:00 localhost.localdomain Keepalived_vrrp 21125 - VRRP_Instance(VI_1) ignoring received advertisment...",
-			expected: RFC5424Message{Priority: 142, Version: 1, Timestamp: "2015-03-02T22:23:07-08:00", Host: "localhost.localdomain", App: "Keepalived_vrrp", Pid: 21125, MsgId: "-", Message: "VRRP_Instance(VI_1) ignoring received advertisment..."},
+			fmt:     "syslog",
+			message: `<142>1 2015-03-02T22:23:07-08:00 localhost.localdomain Keepalived_vrrp 21125 - VRRP_Instance(VI_1) ignoring received advertisment...`,
+			expected: map[string]interface{}{
+				"priority":   142,
+				"version":    1,
+				"timestamp":  "2015-03-02T22:23:07-08:00",
+				"host":       "localhost.localdomain",
+				"app":        "Keepalived_vrrp",
+				"pid":        21125,
+				"message_id": "-",
+				"message":    "VRRP_Instance(VI_1) ignoring received advertisment...",
+			},
 		},
 		{
-			message:  `<142>1 2015-03-02T22:23:07-08:00 localhost.localdomain Keepalived_vrrp 21125 - HEAD /wp-login.php HTTP/1.1" 200 167 "http://www.philipotoole.com/" "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.97 Safari/537.11`,
-			expected: RFC5424Message{Priority: 142, Version: 1, Timestamp: "2015-03-02T22:23:07-08:00", Host: "localhost.localdomain", App: "Keepalived_vrrp", Pid: 21125, MsgId: "-", Message: `HEAD /wp-login.php HTTP/1.1" 200 167 "http://www.philipotoole.com/" "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.97 Safari/537.11`},
+			fmt:     "syslog",
+			message: `<142>1 2015-03-02T22:23:07-08:00 localhost.localdomain Keepalived_vrrp 21125 - HEAD /wp-login.php HTTP/1.1" 200 167 "http://www.philipotoole.com/" "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.97 Safari/537.11`,
+			expected: map[string]interface{}{
+				"priority":   142,
+				"version":    1,
+				"timestamp":  "2015-03-02T22:23:07-08:00",
+				"host":       "localhost.localdomain",
+				"app":        "Keepalived_vrrp",
+				"pid":        21125,
+				"message_id": "-",
+				"message":    `HEAD /wp-login.php HTTP/1.1" 200 167 "http://www.philipotoole.com/" "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.97 Safari/537.11`,
+			},
 		},
 		{
-			message:  `<134>0 2015-05-05T21:20:00.493320+00:00 fisher apache-access - - 173.247.206.174 - - [05/May/2015:21:19:52 +0000] "GET /2013/11/ HTTP/1.1" 200 22056 "http://www.philipotoole.com/" "Wget/1.15 (linux-gnu)"`,
-			expected: RFC5424Message{Priority: 134, Version: 0, Timestamp: "2015-05-05T21:20:00.493320+00:00", Host: "fisher", App: "apache-access", Pid: 0, MsgId: "-", Message: `173.247.206.174 - - [05/May/2015:21:19:52 +0000] "GET /2013/11/ HTTP/1.1" 200 22056 "http://www.philipotoole.com/" "Wget/1.15 (linux-gnu)"`},
+			fmt:     "syslog",
+			message: `<134>0 2015-05-05T21:20:00.493320+00:00 fisher apache-access - - 173.247.206.174 - - [05/May/2015:21:19:52 +0000] "GET /2013/11/ HTTP/1.1" 200 22056 "http://www.philipotoole.com/" "Wget/1.15 (linux-gnu)"`,
+			expected: map[string]interface{}{
+				"priority":   134,
+				"version":    0,
+				"timestamp":  "2015-05-05T21:20:00.493320+00:00",
+				"host":       "fisher",
+				"app":        "apache-access",
+				"pid":        0,
+				"message_id": "-",
+				"message":    `173.247.206.174 - - [05/May/2015:21:19:52 +0000] "GET /2013/11/ HTTP/1.1" 200 22056 "http://www.philipotoole.com/" "Wget/1.15 (linux-gnu)"`,
+			},
+		},
+		{
+			fmt:     "syslog",
+			message: `<134> 2013-09-04T10:25:52.618085 ubuntu sshd 1999 - password accepted`,
+			fail:    true,
+		},
+		{
+			fmt:     "syslog",
+			message: `<33> 7 2013-09-04T10:25:52.618085 test.com cron 304 - password accepted`,
+			fail:    true,
+		},
+		{
+			fmt:     "syslog",
+			message: `<33> 7 2013-09-04T10:25:52.618085 test.com cron 304 $ password accepted`,
+			fail:    true,
+		},
+		{
+			fmt:     "syslog",
+			message: `<33> 7 2013-09-04T10:25:52.618085 test.com cron 304 - - password accepted`,
+			fail:    true,
+		},
+		{
+			fmt:     "syslog",
+			message: `<33>7 2013-09-04T10:25:52.618085 test.com cron not_a_pid - password accepted`,
+			fail:    true,
+		},
+		{
+			fmt:     "syslog",
+			message: `5:52.618085 test.com cron 65535 - password accepted`,
+			fail:    true,
 		},
 	}
 
 	for i, tt := range tests {
-		m := p.Parse(tt.message)
-		if m == nil {
-			t.Fatalf("test %d: failed to parse: %s", i, tt.message)
+		p := NewParser(tt.fmt)
+		t.Logf("using %d\n", i+1)
+		ok := p.Parse(bytes.NewBufferString(tt.message).Bytes())
+		if tt.fail {
+			if ok {
+				t.Error("\n\nParser should fail.\n")
+			}
+		} else {
+			if !ok {
+				t.Error("\n\nParser should succeed.\n")
+			}
 		}
-		if tt.expected != *m {
-			t.Errorf("test %d: incorrect parsing of: %v", i, tt.message)
-			t.Logf("Priority: %d (match: %v)", m.Priority, m.Priority == tt.expected.Priority)
-			t.Logf("Version: %d (match: %v)", m.Version, m.Version == tt.expected.Version)
-			t.Logf("Timestamp: %s (match: %v)", m.Timestamp, m.Timestamp == tt.expected.Timestamp)
-			t.Logf("Host: %s (match: %v)", m.Host, m.Host == tt.expected.Host)
-			t.Logf("App: %s (match: %v)", m.App, m.App == tt.expected.App)
-			t.Logf("PID: %d (match: %v)", m.Pid, m.Pid == tt.expected.Pid)
-			t.Logf("MsgId: %s (match: %v)", m.MsgId, m.MsgId == tt.expected.MsgId)
-			t.Logf("Message: %s (match: %v)", m.Message, m.Message == tt.expected.Message)
-		}
-	}
-}
-
-func Test_FailedRFC5424Parsing(t *testing.T) {
-	p := NewRFC5424Parser()
-
-	tests := []string{
-		"<134> 2013-09-04T10:25:52.618085 ubuntu sshd 1999 - password accepted",
-		"<33> 7 2013-09-04T10:25:52.618085 test.com cron 304 - password accepted",
-		"<33> 7 2013-09-04T10:25:52.618085 test.com cron 304 $ password accepted",
-		"<33> 7 2013-09-04T10:25:52.618085 test.com cron 304 - - password accepted",
-		"<33>7 2013-09-04T10:25:52.618085 test.com cron not_a_pid - password accepted",
-		"5:52.618085 test.com cron 65535 - password accepted",
-	}
-
-	for _, message := range tests {
-		if p.Parse(message) != nil {
-			t.Errorf("parsed '%s', not expected", message)
+		if !tt.fail && !reflect.DeepEqual(tt.expected, p.Result) {
+			t.Logf("%v", p.Result)
+			t.Logf("%v", tt.expected)
+			t.Error("\n\nParser result does not match expected result.\n")
 		}
 	}
 }
 
 func Benchmark_Parsing(b *testing.B) {
-	p := NewRFC5424Parser()
+	p := NewParser("syslog")
 	for n := 0; n < b.N; n++ {
-		m := p.Parse(`<134>0 2015-05-05T21:20:00.493320+00:00 fisher apache-access - - 173.247.206.174 - - [05/May/2015:21:19:52 +0000] "GET /2013/11/ HTTP/1.  1" 200 22056 "http://www.philipotoole.com/" "Wget/1.15 (linux-gnu)"`)
-		if m == nil {
+		ok := p.Parse(bytes.NewBufferString(`<134>0 2015-05-05T21:20:00.493320+00:00 fisher apache-access - - 173.247.206.174 - - [05/May/2015:21:19:52 +0000] "GET /2013/11/ HTTP/1.  1" 200 22056 "http://www.philipotoole.com/" "Wget/1.15 (linux-gnu)"`).Bytes())
+		if !ok {
 			panic("message failed to parse during benchmarking")
 		}
-
 	}
 }

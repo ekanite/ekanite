@@ -1,72 +1,66 @@
 package input
 
 import (
-	"regexp"
-	"strconv"
+	"strings"
 )
 
-// A RFC5424Parser parses Syslog messages.
-type RFC5424Parser struct {
-	regex *regexp.Regexp
+var (
+	fmtsByStandard = []string{"rfc5424"}
+	fmtsByName     = []string{"syslog"}
+)
+
+// ValidFormat returns if the given format matches one of the possible formats.
+func ValidFormat(format string) bool {
+	for _, f := range append(fmtsByStandard, fmtsByName...) {
+		if f == format {
+			return true
+		}
+	}
+	return false
 }
 
-// RFC5424Message represents a fully parsed Syslog RFC5424 message.
-type RFC5424Message struct {
-	Priority  int    `json:"priority"`
-	Version   int    `json:"version"`
-	Timestamp string `json:"timestamp"`
-	Host      string `json:"host"`
-	App       string `json:"app"`
-	Pid       int    `json:"pid"`
-	MsgId     string `json:"msgid"`
-	Message   string `json:"message"`
+// A Parser parses the raw input as a map with a timestamp field.
+type Parser struct {
+	fmt     string
+	Raw     []byte
+	Result  map[string]interface{}
+	rfc5424 *Rfc5424
 }
 
-type ApacheCommonFormat struct {
-	URL        string
-	Referer    string
-	Method     string
-	StatusCode int
-}
-
-// Returns an initialized RFC5424Parser.
-func NewRFC5424Parser() *RFC5424Parser {
-	leading := `(?s)`
-	pri := `<([0-9]{1,3})>`
-	ver := `([0-9])`
-	ts := `([^ ]+)`
-	host := `([^ ]+)`
-	app := `([^ ]+)`
-	pid := `(-|[0-9]{1,5})`
-	id := `([\w-]+)`
-	msg := `(.+$)`
-
-	p := &RFC5424Parser{}
-	r := regexp.MustCompile(leading + pri + ver + `\s` + ts + `\s` + host + `\s` + app + `\s` + pid + `\s` + id + `\s` + msg)
-	p.regex = r
-
+// NewParser returns a new Parser instance.
+func NewParser(f string) *Parser {
+	p := &Parser{}
+	p.detectFmt(strings.TrimSpace(strings.ToLower(f)))
+	p.newRfc5424Parser()
 	return p
 }
 
-// Parse takes a raw message and returns a parsed message. If no match,
-// nil is returned.
-func (p *RFC5424Parser) Parse(raw string) *RFC5424Message {
-	m := p.regex.FindStringSubmatch(raw)
-	if m == nil || len(m) != 9 {
-		stats.Add("unparsed", 1)
-		return nil
+// Reads the given format and detects its internal name.
+func (p *Parser) detectFmt(f string) {
+	for i, v := range fmtsByName {
+		if f == v {
+			p.fmt = fmtsByStandard[i]
+			return
+		}
 	}
-	stats.Add("parsed", 1)
-
-	// Errors are ignored, because the regex shouldn't match if the
-	// following ain't numbers.
-	pri, _ := strconv.Atoi(m[1])
-	ver, _ := strconv.Atoi(m[2])
-
-	var pid int
-	if m[6] != "-" {
-		pid, _ = strconv.Atoi(m[6])
+	for _, v := range fmtsByStandard {
+		if f == v {
+			p.fmt = v
+			return
+		}
 	}
+	stats.Add("invalidParserFormat", 1)
+	p.fmt = fmtsByStandard[0]
+	return
+}
 
-	return &RFC5424Message{pri, ver, m[3], m[4], m[5], pid, m[7], m[8]}
+// Parse the given byte slice.
+func (p *Parser) Parse(b []byte) bool {
+	p.Result = map[string]interface{}{}
+	p.Raw = b
+	p.rfc5424.parse(p.Raw, &p.Result)
+	if len(p.Result) == 0 {
+		return false
+	}
+	return true
 }
