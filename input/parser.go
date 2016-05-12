@@ -1,6 +1,7 @@
 package input
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -28,11 +29,15 @@ type Parser struct {
 }
 
 // NewParser returns a new Parser instance.
-func NewParser(f string) *Parser {
+func NewParser(f string) (*Parser, error) {
+	if !ValidFormat(f) {
+		return nil, fmt.Errorf("%s is not a valid format", f)
+	}
+
 	p := &Parser{}
 	p.detectFmt(strings.TrimSpace(strings.ToLower(f)))
 	p.newRfc5424Parser()
-	return p
+	return p, nil
 }
 
 // Reads the given format and detects its internal name.

@@ -15,20 +15,20 @@ func Test_Formats(t *testing.T) {
 		t.Fatalf("Parser format %v does not match the intended format %v (same as: %v).\n", rtrnd, intndA, intnd)
 	}
 	for i, f := range fmtsByName {
-		p = NewParser(f)
+		p, _ = NewParser(f)
 		if p.fmt != fmtsByStandard[i] {
 			mismatched(p.fmt, f, fmtsByStandard[i])
 		}
 	}
 	for _, f := range fmtsByStandard {
-		p = NewParser(f)
+		p, _ = NewParser(f)
 		if p.fmt != f {
 			mismatched(p.fmt, f, "")
 		}
 	}
-	p = NewParser("unknown-format")
-	if p.fmt != fmtsByStandard[0] {
-		mismatched(p.fmt, fmtsByStandard[0], "")
+	p, err := NewParser("unknown-format")
+	if err == nil {
+		t.Fatalf("parser successfully created with invalid format")
 	}
 }
 
@@ -212,7 +212,7 @@ func Test_Parsing(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		p := NewParser(tt.fmt)
+		p, _ := NewParser(tt.fmt)
 		t.Logf("using %d\n", i+1)
 		ok := p.Parse(bytes.NewBufferString(tt.message).Bytes())
 		if tt.fail {
@@ -233,7 +233,7 @@ func Test_Parsing(t *testing.T) {
 }
 
 func Benchmark_Parsing(b *testing.B) {
-	p := NewParser("syslog")
+	p, _ := NewParser("syslog")
 	for n := 0; n < b.N; n++ {
 		ok := p.Parse(bytes.NewBufferString(`<134>0 2015-05-05T21:20:00.493320+00:00 fisher apache-access - - 173.247.206.174 - - [05/May/2015:21:19:52 +0000] "GET /2013/11/ HTTP/1.  1" 200 22056 "http://www.philipotoole.com/" "Wget/1.15 (linux-gnu)"`).Bytes())
 		if !ok {
