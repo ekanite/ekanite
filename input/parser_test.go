@@ -11,9 +11,8 @@ func Test_Formats(t *testing.T) {
 	mismatched := func(rtrnd string, intnd string, intndA string) {
 		if intndA != "" {
 			t.Fatalf("Parser format %v does not match the intended format %v.\n", rtrnd, intnd)
-		} else {
-			t.Fatalf("Parser format %v does not match the indended format %v (same as: %v).\n", rtrnd, intndA, intnd)
 		}
+		t.Fatalf("Parser format %v does not match the intended format %v (same as: %v).\n", rtrnd, intndA, intnd)
 	}
 	for i, f := range fmtsByName {
 		p = NewParser(f)
@@ -182,12 +181,32 @@ func Test_Parsing(t *testing.T) {
 		},
 		{
 			fmt:     "syslog",
-			message: `1 2003-10-11T22:14:15.003Z mymachine.example.com su - ID47 - BOM'su root' failed for lonvick on /dev/pts/8`,
+			message: `<134> 2013-09-04T10:25:52.618085 ubuntu sshd 1999 - password accepted`,
 			fail:    true,
 		},
 		{
 			fmt:     "syslog",
-			message: `<34>1 mymachine.example.com su - ID47 - BOM'su root' failed for lonvick on /dev/pts/8`,
+			message: `<33> 7 2013-09-04T10:25:52.618085 test.com cron 304 - password accepted`,
+			fail:    true,
+		},
+		{
+			fmt:     "syslog",
+			message: `<33> 7 2013-09-04T10:25:52.618085 test.com cron 304 $ password accepted`,
+			fail:    true,
+		},
+		{
+			fmt:     "syslog",
+			message: `<33> 7 2013-09-04T10:25:52.618085 test.com cron 304 - - password accepted`,
+			fail:    true,
+		},
+		{
+			fmt:     "syslog",
+			message: `<33>7 2013-09-04T10:25:52.618085 test.com cron not_a_pid - password accepted`,
+			fail:    true,
+		},
+		{
+			fmt:     "syslog",
+			message: `5:52.618085 test.com cron 65535 - password accepted`,
 			fail:    true,
 		},
 	}
@@ -209,6 +228,16 @@ func Test_Parsing(t *testing.T) {
 			t.Logf("%v", p.Result)
 			t.Logf("%v", tt.expected)
 			t.Error("\n\nParser result does not match expected result.\n")
+		}
+	}
+}
+
+func Benchmark_Parsing(b *testing.B) {
+	p := NewParser()
+	for n := 0; n < b.N; n++ {
+		m := p.Parse(`<134>0 2015-05-05T21:20:00.493320+00:00 fisher apache-access - - 173.247.206.174 - - [05/May/2015:21:19:52 +0000] "GET /2013/11/ HTTP/1.  1" 200 22056 "http://www.philipotoole.com/" "Wget/1.15 (linux-gnu)"`)
+		if m == nil {
+			panic("message failed to parse during benchmarking")
 		}
 	}
 }
