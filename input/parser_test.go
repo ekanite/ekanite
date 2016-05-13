@@ -209,6 +209,30 @@ func Test_Parsing(t *testing.T) {
 			message: `5:52.618085 test.com cron 65535 - password accepted`,
 			fail:    true,
 		},
+		{
+			fmt:     "json",
+			message: `{"version": "1.1", "host": "example.org", "short_message": "A short message that helps you identify what is going on", "timestamp": "1095379198.75", "level": 1, "_user_id": 9001, "_some_info": "foo", "_some_env_var": "bar"}`,
+			expected: map[string]interface{}{
+				"version":       "1.1",
+				"host":          "example.org",
+				"short_message": "A short message that helps you identify what is going on",
+				"timestamp":     "2004-09-17T01:59:58+02:00",
+				"level":         1,
+				"_user_id":      9001,
+				"_some_info":    "foo",
+				"_some_env_var": "bar",
+			},
+		},
+		{
+			fmt:     "json",
+			message: `{"version": "1.1", "host": "example.org", "short_message": "A short message that helps you identify what is going on", "full_message": "Backtrace here\n\nmore stuff", "timestamp": "1095379198", "level": 1, "_user_id": 9001, "_some_info": "foo", "_some_env_var": "bar"`,
+			fail:    true,
+		},
+		{
+			fmt:     "json",
+			message: `{"version": "1.1", "host": "example.org", "short_message": "A short message that helps you identify what is going on", "full_message": "Backtrace here\n\nmore stuff", "level": 1, "_user_id": 9001, "_some_info": "foo", "_some_env_var": "bar"}`,
+			fail:    true,
+		},
 	}
 
 	for i, tt := range tests {
@@ -223,11 +247,11 @@ func Test_Parsing(t *testing.T) {
 			if !ok {
 				t.Error("\n\nParser should succeed.\n")
 			}
-		}
-		if !tt.fail && !reflect.DeepEqual(tt.expected, p.Result) {
-			t.Logf("%v", p.Result)
-			t.Logf("%v", tt.expected)
-			t.Error("\n\nParser result does not match expected result.\n")
+			if !reflect.DeepEqual(p.Result, tt.expected) {
+				t.Logf("%#v", p.Result)
+				t.Logf("%#v", tt.expected)
+				t.Error("\n\nParser result does not match expected result.\n")
+			}
 		}
 	}
 }

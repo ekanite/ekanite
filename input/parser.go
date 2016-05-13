@@ -6,8 +6,8 @@ import (
 )
 
 var (
-	fmtsByStandard = []string{"rfc5424"}
-	fmtsByName     = []string{"syslog"}
+	fmtsByStandard = []string{"rfc5424", "ecma404"}
+	fmtsByName     = []string{"syslog", "json"}
 )
 
 // ValidFormat returns if the given format matches one of the possible formats.
@@ -26,6 +26,8 @@ type Parser struct {
 	Raw     []byte
 	Result  map[string]interface{}
 	rfc5424 *Rfc5424
+	ecma404 *Ecma404
+	rfc3339 *Rfc3339
 }
 
 // NewParser returns a new Parser instance.
@@ -37,6 +39,8 @@ func NewParser(f string) (*Parser, error) {
 	p := &Parser{}
 	p.detectFmt(strings.TrimSpace(strings.ToLower(f)))
 	p.newRfc5424Parser()
+	p.newEcma404Parser()
+	p.newRfc3339Parser()
 	return p, nil
 }
 
@@ -63,7 +67,18 @@ func (p *Parser) detectFmt(f string) {
 func (p *Parser) Parse(b []byte) bool {
 	p.Result = map[string]interface{}{}
 	p.Raw = b
-	p.rfc5424.parse(p.Raw, &p.Result)
+	if p.fmt == "ecma404" {
+		p.ecma404.parse(p.Raw, &p.Result)
+		if _, ok := p.Result["timestamp"]; !ok {
+			return false
+		}
+		p.Result["timestamp"], err = p.rfc3339.parse(p.Result["timestamp"].(string))
+		if err != nil {
+			return false
+		}
+	} else {
+		p.rfc5424.parse(p.Raw, &p.Result)
+	}
 	if len(p.Result) == 0 {
 		return false
 	}
