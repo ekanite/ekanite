@@ -2,7 +2,7 @@ package input
 
 import (
 	"bytes"
-	"reflect"
+	"fmt"
 	"testing"
 )
 
@@ -252,7 +252,18 @@ func Test_Parsing(t *testing.T) {
 			if !ok {
 				t.Error("\n\nParser should succeed.\n")
 			}
-			if !reflect.DeepEqual(p.Result, tt.expected) {
+			ckeckEquality := func() bool {
+				for k, v := range p.Result {
+					if _, ok := tt.expected[k]; ok {
+						return false
+					}
+					if fmt.Sprintf("%s", v) != fmt.Sprintf("%s", tt.expected[k]) {
+						return false
+					}
+				}
+				return true
+			}
+			if !ckeckEquality() {
 				t.Logf("%#v", p.Result)
 				t.Logf("%#v", tt.expected)
 				t.Error("\n\nParser result does not match expected result.\n")
