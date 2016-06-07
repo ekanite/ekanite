@@ -380,7 +380,7 @@ func (e *Engine) Search(query string) (<-chan string, error) {
 	return c, nil
 }
 
-// Path returns the path to the indexed data directory.
+// Path returns the path to the directory of indexed data.
 func (e *Engine) Path() string {
 	return e.path
 }
