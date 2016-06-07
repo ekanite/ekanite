@@ -81,7 +81,6 @@ func (s *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		userQuery := r.FormValue("query")
-
 		s.Logger.Printf("executing query '%s'", userQuery)
 
 		resultSet, err := s.Searcher.Search(userQuery)
@@ -140,7 +139,6 @@ func dontCache(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Expires", time.Unix(0, 0).Format(time.RFC1123))
 	w.Header().Set("Last-Modified", time.Now().Format(time.RFC1123))
 	w.Header().Set("Cache-Control", "private, no-store, max-age=0, no-cache, must-revalidate, post-check=0, pre-check=0")
-
 	return
 }
 
