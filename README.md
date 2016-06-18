@@ -18,7 +18,7 @@ The quickest way to get running on OSX and Linux is to download a pre-built rele
 ```bash
 ekanited -datadir ~/ekanite_data
 ```
-To see all Ekanite options pass `-h` to the binary.
+To see all Ekanite options pass `-h` on the command line.
 
 __If you want to build Ekanite__, either because you want the latest code or a pre-built binary for platform is not available, take a look at [CONTRIBUTING.md](https://github.com/ekanite/ekanite/blob/master/CONTRIBUTING.md).
 
