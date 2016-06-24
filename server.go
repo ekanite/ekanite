@@ -65,7 +65,6 @@ func (s *Server) handleConnection(conn net.Conn) {
 	s.Logger.Printf("new connection from %s", conn.RemoteAddr())
 
 	reader := bufio.NewReader(conn)
-
 	for {
 		b, err := reader.ReadString('\n')
 		if err != nil {
