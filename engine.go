@@ -216,7 +216,6 @@ func (e *Engine) runRetentionEnforcement() {
 			return
 
 		case <-time.After(RetentionCheckInterval):
-			e.Logger.Print("retention enforcement commencing")
 			stats.Add("retentionEnforcementRun", 1)
 			e.enforceRetention()
 		}
