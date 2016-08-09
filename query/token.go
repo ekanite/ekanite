@@ -60,16 +60,16 @@ func (t Token) isOperator() bool {
 }
 
 // String returns the string representation of the token.
-func (tok Token) String() string {
-	if tok >= 0 && tok < Token(len(tokens)) {
-		return tokens[tok]
+func (t Token) String() string {
+	if t >= 0 && t < Token(len(tokens)) {
+		return tokens[t]
 	}
 	return ""
 }
 
 // Precedence returns the operator precedence of the binary operator token.
-func (tok Token) Precedence() int {
-	switch tok {
+func (t Token) Precedence() int {
+	switch t {
 	case OR:
 		return 1
 	case AND:
@@ -89,9 +89,9 @@ func Lookup(ident string) (Token, bool) {
 }
 
 // tokstr returns a literal if provided, otherwise returns the token string.
-func tokstr(tok Token, lit string) string {
+func tokstr(t Token, lit string) string {
 	if lit != "" {
 		return lit
 	}
-	return tok.String()
+	return t.String()
 }

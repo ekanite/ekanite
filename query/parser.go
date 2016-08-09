@@ -44,6 +44,7 @@ type Statement struct {
 	Expressions []*FieldExpr
 }
 
+// String returns the string representation of a statement
 func (s *Statement) String() string {
 	var b string
 	for _, e := range s.Expressions {
@@ -52,6 +53,7 @@ func (s *Statement) String() string {
 	return b
 }
 
+// Parser represents a command parser
 type Parser struct {
 	s   *Lexer
 	buf struct {

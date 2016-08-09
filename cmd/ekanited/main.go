@@ -144,7 +144,7 @@ func main() {
 
 	// Start the http query server if requested.
 	if *queryIfaceHttp != "" {
-		server := ekanite.NewHttpServer(*queryIfaceHttp, engine)
+		server := ekanite.NewHTTPServer(*queryIfaceHttp, engine)
 		if server == nil {
 			log.Fatal("failed to create HTTP query server")
 		}
