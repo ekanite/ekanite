@@ -2,7 +2,7 @@ package input
 
 import (
 	"bytes"
-	"reflect"
+	"fmt"
 	"testing"
 )
 
@@ -33,6 +33,11 @@ func Test_Formats(t *testing.T) {
 }
 
 func Test_Parsing(t *testing.T) {
+	tp, _ := NewParser("json")
+	ts, err := tp.rfc3339.parse("1095379198.75")
+	if err != nil {
+		t.Fatal("failed to parse test timestamp")
+	}
 	tests := []struct {
 		fmt      string
 		message  string
@@ -209,6 +214,30 @@ func Test_Parsing(t *testing.T) {
 			message: `5:52.618085 test.com cron 65535 - password accepted`,
 			fail:    true,
 		},
+		{
+			fmt:     "json",
+			message: `{"version": "1.1", "host": "example.org", "short_message": "A short message that helps you identify what is going on", "timestamp": "1095379198.75", "level": 1, "_user_id": 9001, "_some_info": "foo", "_some_env_var": "bar"}`,
+			expected: map[string]interface{}{
+				"version":       "1.1",
+				"host":          "example.org",
+				"short_message": "A short message that helps you identify what is going on",
+				"timestamp":     ts,
+				"level":         1,
+				"_user_id":      9001,
+				"_some_info":    "foo",
+				"_some_env_var": "bar",
+			},
+		},
+		{
+			fmt:     "json",
+			message: `{"version": "1.1", "host": "example.org", "short_message": "A short message that helps you identify what is going on", "full_message": "Backtrace here\n\nmore stuff", "timestamp": "1095379198", "level": 1, "_user_id": 9001, "_some_info": "foo", "_some_env_var": "bar"`,
+			fail:    true,
+		},
+		{
+			fmt:     "json",
+			message: `{"version": "1.1", "host": "example.org", "short_message": "A short message that helps you identify what is going on", "full_message": "Backtrace here\n\nmore stuff", "level": 1, "_user_id": 9001, "_some_info": "foo", "_some_env_var": "bar"}`,
+			fail:    true,
+		},
 	}
 
 	for i, tt := range tests {
@@ -223,11 +252,22 @@ func Test_Parsing(t *testing.T) {
 			if !ok {
 				t.Error("\n\nParser should succeed.\n")
 			}
-		}
-		if !tt.fail && !reflect.DeepEqual(tt.expected, p.Result) {
-			t.Logf("%v", p.Result)
-			t.Logf("%v", tt.expected)
-			t.Error("\n\nParser result does not match expected result.\n")
+			ckeckEquality := func() bool {
+				for k, v := range p.Result {
+					if _, ok := tt.expected[k]; ok {
+						return false
+					}
+					if fmt.Sprintf("%s", v) != fmt.Sprintf("%s", tt.expected[k]) {
+						return false
+					}
+				}
+				return true
+			}
+			if !ckeckEquality() {
+				t.Logf("%#v", p.Result)
+				t.Logf("%#v", tt.expected)
+				t.Error("\n\nParser result does not match expected result.\n")
+			}
 		}
 	}
 }
