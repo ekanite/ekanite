@@ -11,7 +11,7 @@ import (
 )
 
 // Server serves query client connections.
-type HttpServer struct {
+type HTTPServer struct {
 	iface    string
 	Searcher Searcher
 
@@ -22,8 +22,8 @@ type HttpServer struct {
 }
 
 // NewServer returns a new Server instance.
-func NewHttpServer(iface string, searcher Searcher) *HttpServer {
-	return &HttpServer{
+func NewHTTPServer(iface string, searcher Searcher) *HTTPServer {
+	return &HTTPServer{
 		iface:    iface,
 		Searcher: searcher,
 		Logger:   log.New(os.Stderr, "[httpserver] ", log.LstdFlags),
@@ -31,7 +31,7 @@ func NewHttpServer(iface string, searcher Searcher) *HttpServer {
 }
 
 // Start instructs the Server to bind to the interface and accept connections.
-func (s *HttpServer) Start() error {
+func (s *HTTPServer) Start() error {
 	ln, err := net.Listen("tcp", s.iface)
 	if err != nil {
 		return err
@@ -50,12 +50,12 @@ func (s *HttpServer) Start() error {
 }
 
 // Addr returns the address to which the Server is bound.
-func (s *HttpServer) Addr() net.Addr {
+func (s *HTTPServer) Addr() net.Addr {
 	return s.addr
 }
 
 // ServeHTTP implements a http.Handler, serving the query interface for Ekanite
-func (s *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	dontCache(w, r)
 
 	if r.Method == "GET" || r.Method == "HEAD" {
@@ -118,7 +118,7 @@ func (s *HttpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // serveIndex serves the plain index for the GET request and POST failovers
-func serveIndex(s *HttpServer, w http.ResponseWriter, r *http.Request) error {
+func serveIndex(s *HTTPServer, w http.ResponseWriter, r *http.Request) error {
 	data := struct {
 		Title         string
 		Headline      string
