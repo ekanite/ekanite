@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Simple script for creating releases.
+# Simple script for creating releases and optionally uploading to GitHub
 
 if [ $# -lt 1 ]; then
     echo "$0 <version> [api_token release_id]"
