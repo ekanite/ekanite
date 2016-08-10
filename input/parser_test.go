@@ -139,7 +139,7 @@ func Test_Parsing(t *testing.T) {
 		},
 		{
 			fmt:     "syslog",
-			message: `<142>1 2015-03-02T22:23:07-08:00 localhost.localdomain Keepalived_vrrp 21125 - VRRP_Instance(VI_1) ignoring received advertisment...`,
+			message: `<142>1 2015-03-02T22:23:07-08:00 localhost.localdomain Keepalived_vrrp 21125 - VRRP_Instance(VI_1) ignoring received advertisement...`,
 			expected: map[string]interface{}{
 				"priority":   142,
 				"version":    1,
@@ -148,7 +148,7 @@ func Test_Parsing(t *testing.T) {
 				"app":        "Keepalived_vrrp",
 				"pid":        21125,
 				"message_id": "-",
-				"message":    "VRRP_Instance(VI_1) ignoring received advertisment...",
+				"message":    "VRRP_Instance(VI_1) ignoring received advertisement...",
 			},
 		},
 		{

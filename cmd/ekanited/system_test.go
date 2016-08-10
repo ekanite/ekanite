@@ -21,7 +21,7 @@ type testSystem struct {
 	c *testCollector
 }
 
-// NewSystem returns a funtioning ingestion, indexing, and search system.
+// NewSystem returns a functioning ingestion, indexing, and search system.
 func NewSystem(path string) *testSystem {
 	// Clear out any existing data from previous test calls.
 	os.RemoveAll(path)
