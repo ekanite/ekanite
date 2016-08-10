@@ -11,7 +11,7 @@ type Event struct {
 	*input.Event
 }
 
-// NewEvent retuns a new Event.
+// NewEvent returns a new Event.
 func NewEvent() *Event {
 	return &Event{}
 }

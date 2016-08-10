@@ -13,7 +13,7 @@ type Event struct {
 	referenceTime time.Time // Memomized reference time
 }
 
-// NewEvent retuns a new Event.
+// NewEvent returns a new Event.
 func NewEvent() *Event {
 	return &Event{}
 }
