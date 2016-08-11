@@ -22,7 +22,7 @@ func (t *TestIndexer) Index(b []*Event) error {
 	return nil
 }
 
-// TestBatcher_MultiEvent tests that a single event is sent when the batch size is 1.
+// TestBatcher_SingleEvent tests that a single event is sent when the batch size is 1.
 func TestBatcher_SingleEvent(t *testing.T) {
 	e := newInputEvent("", time.Now())
 	i := &TestIndexer{}
@@ -247,21 +247,21 @@ func TestEngine_Indexing(t *testing.T) {
 			defer os.RemoveAll(dataDir)
 			e := newEngine(dataDir, tt.numShards, tt.indexDuration)
 			defer e.Close()
-			testEngine_Index(t, e)
+			testEngineIndex(t, e)
 		}()
 		func() {
 			dataDir := tempPath()
 			defer os.RemoveAll(dataDir)
 			e := newEngine(dataDir, tt.numShards, tt.indexDuration)
 			defer e.Close()
-			testEngine_IndexPrime(t, e)
+			testEngineIndexPrime(t, e)
 		}()
 		func() {
 			dataDir := tempPath()
 			defer os.RemoveAll(dataDir)
 			e := newEngine(dataDir, tt.numShards, tt.indexDuration)
 			defer e.Close()
-			testEngine_indexForReferenceTime(t, e)
+			testEngineIndexForReferenceTime(t, e)
 		}()
 	}
 }
@@ -357,7 +357,7 @@ func TestEngine_RetentionEnforcement(t *testing.T) {
 	}
 }
 
-func testEngine_indexForReferenceTime(t *testing.T, e *Engine) {
+func testEngineIndexForReferenceTime(t *testing.T, e *Engine) {
 	start1 := parseTime("1982-02-05T04:00:00Z")
 	start2 := parseTime("1982-02-05T05:00:00Z")
 	start3 := parseTime("1982-02-05T06:00:00Z")
@@ -420,7 +420,7 @@ func testEngine_indexForReferenceTime(t *testing.T, e *Engine) {
 	}
 }
 
-func testEngine_Index(t *testing.T, e *Engine) {
+func testEngineIndex(t *testing.T, e *Engine) {
 	ev := newIndexableEvent("this is event 1234", parseTime("1982-02-05T04:43:00Z"))
 
 	if err := e.Index([]*Event{ev}); err != nil {
@@ -435,9 +435,9 @@ func testEngine_Index(t *testing.T, e *Engine) {
 	}
 }
 
-// testEngine_IndexPrime tests batch indexing of a batch prime in size. This guarantees
+// testEngineIndexPrime tests batch indexing of a batch prime in size. This guarantees
 // different size batches, unless the shard count is 1 or the batch size.
-func testEngine_IndexPrime(t *testing.T, e *Engine) {
+func testEngineIndexPrime(t *testing.T, e *Engine) {
 	rt := parseTime("1982-02-05T04:43:00Z")
 	batchSize := 97
 	batch := make([]*Event, 0, batchSize)
