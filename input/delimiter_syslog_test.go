@@ -66,34 +66,34 @@ func Test_SyslogDelimiter(t *testing.T) {
 
 func TestSyslogDelimiter_Vestige(t *testing.T) {
 	tests := []struct {
-		name           string
-		line           string
-		expected_event string
-		expected_match bool
+		name          string
+		line          string
+		expectedEvent string
+		expectedMatch bool
 	}{
 		{
-			name:           "vestige zero",
-			line:           "",
-			expected_event: "",
-			expected_match: false,
+			name:          "vestige zero",
+			line:          "",
+			expectedEvent: "",
+			expectedMatch: false,
 		},
 		{
-			name:           "vestige no match",
-			line:           "12\n",
-			expected_event: "",
-			expected_match: false,
+			name:          "vestige no match",
+			line:          "12\n",
+			expectedEvent: "",
+			expectedMatch: false,
 		},
 		{
-			name:           "vestige match",
-			line:           "<12>3 ",
-			expected_event: "<12>3 ",
-			expected_match: true,
+			name:          "vestige match",
+			line:          "<12>3 ",
+			expectedEvent: "<12>3 ",
+			expectedMatch: true,
 		},
 		{
-			name:           "vestige rich match",
-			line:           "<145>1 OOM on line 42, dummy.java\n\tclass_loader.jar",
-			expected_event: "<145>1 OOM on line 42, dummy.java\n\tclass_loader.jar",
-			expected_match: true,
+			name:          "vestige rich match",
+			line:          "<145>1 OOM on line 42, dummy.java\n\tclass_loader.jar",
+			expectedEvent: "<145>1 OOM on line 42, dummy.java\n\tclass_loader.jar",
+			expectedMatch: true,
 		},
 	}
 
@@ -103,8 +103,8 @@ func TestSyslogDelimiter_Vestige(t *testing.T) {
 			d.Push(byte(c))
 		}
 		e, m := d.Vestige()
-		if e != tt.expected_event || m != tt.expected_match {
-			t.Errorf("test %s: vestige test failed, got %s %v, expected %s %v", tt.name, e, m, tt.expected_event, tt.expected_match)
+		if e != tt.expectedEvent || m != tt.expectedMatch {
+			t.Errorf("test %s: vestige test failed, got %s %v, expected %s %v", tt.name, e, m, tt.expectedEvent, tt.expectedMatch)
 		}
 	}
 }
