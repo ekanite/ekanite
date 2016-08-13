@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// Server serves query client connections.
+// HTTPServer serves query client connections.
 type HTTPServer struct {
 	iface    string
 	Searcher Searcher
@@ -21,7 +21,7 @@ type HTTPServer struct {
 	Logger *log.Logger
 }
 
-// NewServer returns a new Server instance.
+// NewHTTPServer returns a new Server instance.
 func NewHTTPServer(iface string, searcher Searcher) *HTTPServer {
 	return &HTTPServer{
 		iface:    iface,

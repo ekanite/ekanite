@@ -28,7 +28,7 @@ var (
 	stats = expvar.NewMap("engine")
 )
 
-// EventIndex is the interface a system than can index events must implement.
+// EventIndexer is the interface a system than can index events must implement.
 type EventIndexer interface {
 	Index(events []*Event) error
 }
