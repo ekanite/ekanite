@@ -16,11 +16,11 @@ const (
 var (
 	err        error
 	mutex      *sync.Mutex = &sync.Mutex{}
-	brokenErr              = errors.New("broken")
-	lenIncErr              = errors.New("length-buffer-incomplete")
-	lenInvErr              = errors.New("length-buffer-invalid-byte")
-	lenConvErr             = errors.New("length-buffer-conversion-error")
-	valIncErr              = errors.New("value-buffer-incomplete")
+	errBroken              = errors.New("broken")
+	errLenInc              = errors.New("length-buffer-incomplete")
+	errLenInv              = errors.New("length-buffer-invalid-byte")
+	errLenConv             = errors.New("length-buffer-conversion-error")
+	errValInc              = errors.New("value-buffer-incomplete")
 )
 
 // A NetstrDelimiter detects when message lines start.
@@ -75,12 +75,12 @@ func (d *NetstrDelimiter) processLenByte(b byte) (bool, error) {
 	if d.checkLenByte(b) {
 		if err = d.lenBuff.WriteByte(b); err != nil {
 			d.brokenMode = true
-			return NoResult, lenIncErr
+			return NoResult, errLenInc
 		}
 		return NoResult, nil
 	}
 	d.brokenMode = true
-	return NoResult, lenInvErr
+	return NoResult, errLenInv
 }
 
 // checkLenByte checks that the current byte is a digit.
@@ -108,7 +108,7 @@ func (d *NetstrDelimiter) processValByte(b byte) (bool, error) {
 	// the current "value buffer" gets ignored.
 	if err = d.valBuff.WriteByte(b); err != nil {
 		d.ignoreMode = true
-		return NoResult, valIncErr
+		return NoResult, errValInc
 	}
 	return NoResult, nil
 }
@@ -130,7 +130,7 @@ func (d *NetstrDelimiter) useLenBuff() {
 func (d *NetstrDelimiter) useValBuff() error {
 	if d.valBuffLen, err = strconv.Atoi(d.lenBuff.String()); err != nil {
 		d.brokenMode = true
-		return lenConvErr
+		return errLenConv
 	}
 	d.lenBuff.Reset()
 	d.valBuffMode = true
