@@ -28,7 +28,6 @@ type Service struct {
 func NewService(addr string) *Service {
 	return &Service{
 		addr:   addr,
-		store:  store,
 		start:  time.Now(),
 		logger: log.New(os.Stderr, "[status] ", log.LstdFlags),
 	}
@@ -40,7 +39,7 @@ func (s *Service) Start() error {
 		Handler: s,
 	}
 
-	ln, err = net.Listen("tcp", s.addr)
+	ln, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		return err
 	}
@@ -80,9 +79,9 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case strings.HasPrefix(r.URL.Path, "/status"):
 		s.handleStatus(w, r)
-	case r.URL.Path == "/debug/vars" && s.Expvar:
+	case r.URL.Path == "/debug/vars":
 		serveExpvar(w, r)
-	case strings.HasPrefix(r.URL.Path, "/debug/pprof") && s.Pprof:
+	case strings.HasPrefix(r.URL.Path, "/debug/pprof"):
 		servePprof(w, r)
 	default:
 		w.WriteHeader(http.StatusNotFound)
