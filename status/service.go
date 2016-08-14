@@ -80,7 +80,7 @@ func (s *Service) Register(key string, provider Provider) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.providers[key] = provider
-	s.logger.Println("status provider registered for %s", key)
+	s.logger.Println("status provider registered for", key)
 }
 
 // ServeHTTP allows Service to serve HTTP requests.
@@ -113,7 +113,7 @@ func (s *Service) handleStatus(w http.ResponseWriter, r *http.Request) {
 	for k, p := range s.providers {
 		st, err := p.Status()
 		if err != nil {
-			s.logger.Println("failed to retrieve status for %s:", k, err.Error())
+			s.logger.Printf("failed to retrieve status for %s: %s", k, err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
