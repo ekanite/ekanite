@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net"
-	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
@@ -22,6 +20,7 @@ import (
 
 	"github.com/ekanite/ekanite"
 	"github.com/ekanite/ekanite/input"
+	"github.com/ekanite/ekanite/status"
 )
 
 var (
@@ -106,14 +105,11 @@ func main() {
 
 	// Start the expvar handler if requested.
 	if *diagIface != "" {
-		sock, err := net.Listen("tcp", *diagIface)
-		if err != nil {
-			log.Fatalf("failed to create diag server: %s", err.Error())
+		diagServer := status.NewService(*diagIface)
+
+		if diagServer.Start(); err != nil {
+			log.Fatalf("failed to start status server: %s", err.Error())
 		}
-		go func() {
-			log.Printf("diags now available at %s", *diagIface)
-			http.Serve(sock, nil)
-		}()
 	}
 
 	// Create and open the Engine.
