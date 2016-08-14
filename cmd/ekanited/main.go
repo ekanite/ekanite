@@ -103,10 +103,9 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	log.Println("GOMAXPROCS set to", runtime.GOMAXPROCS(0))
 
-	var diagServer *status.Service
 	// Start the expvar handler if requested.
 	if *diagIface != "" {
-		diagServer = status.NewService(*diagIface)
+		diagServer := status.NewService(*diagIface)
 
 		if diagServer.Start(); err != nil {
 			log.Fatalf("failed to start status server: %s", err.Error())
