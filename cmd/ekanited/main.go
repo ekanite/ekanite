@@ -109,7 +109,7 @@ func main() {
 		diagServer = status.NewService(*diagIface)
 
 		if diagServer.Start(); err != nil {
-			log.Fatalf("failed to start diag server: %s", err.Error())
+			log.Fatalf("failed to start status server: %s", err.Error())
 		}
 	}
 
