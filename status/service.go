@@ -1,6 +1,7 @@
 package status
 
 import (
+	"encoding/json"
 	"expvar"
 	"fmt"
 	"log"
@@ -9,15 +10,22 @@ import (
 	"net/http/pprof"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
+
+type Provider interface {
+	Status() (map[string]interface{}, error)
+}
 
 // Service provides HTTP status service.
 type Service struct {
 	addr string       // Bind address of the HTTP service.
 	ln   net.Listener // Service listener
 
-	start time.Time // Start up time.
+	start     time.Time           // Start up time.
+	providers map[string]Provider // Registered providers
+	mu        sync.Mutex
 
 	BuildInfo map[string]interface{}
 
@@ -67,6 +75,14 @@ func (s *Service) Addr() net.Addr {
 	return s.ln.Addr()
 }
 
+// Register registers the given provider with the given key.
+func (s *Service) Register(key string, provider Provider) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.providers[key] = provider
+	s.logger.Println("status provider registered for %s", key)
+}
+
 // ServeHTTP allows Service to serve HTTP requests.
 func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Add version header to every response, if available.
@@ -90,6 +106,36 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // handleStatus returns status on the system.
 func (s *Service) handleStatus(w http.ResponseWriter, r *http.Request) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	status := make(map[string]interface{})
+	for k, p := range s.providers {
+		st, err := p.Status()
+		if err != nil {
+			s.logger.Println("failed to retrieve status for %s:", k, err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		status[k] = st
+	}
+
+	pretty, _ := isPretty(r)
+	var b []byte
+	var err error
+	if pretty {
+		b, err = json.MarshalIndent(status, "", "    ")
+	} else {
+		b, err = json.Marshal(status)
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	} else {
+		_, err = w.Write([]byte(b))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}
 }
 
 // serveExpvar serves registered expvar information over HTTP.
@@ -119,4 +165,21 @@ func servePprof(w http.ResponseWriter, r *http.Request) {
 	default:
 		pprof.Index(w, r)
 	}
+}
+
+// queryParam returns whether the given query param is set to true.
+func queryParam(req *http.Request, param string) (bool, error) {
+	err := req.ParseForm()
+	if err != nil {
+		return false, err
+	}
+	if _, ok := req.Form[param]; ok {
+		return true, nil
+	}
+	return false, nil
+}
+
+// isPretty returns whether the HTTP response body should be pretty-printed.
+func isPretty(req *http.Request) (bool, error) {
+	return queryParam(req, "pretty")
 }
