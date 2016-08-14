@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	LenBuffEnd = ":"
-	ValBuffEnd = ";"
-	NoResult   = false
+	lenBuffEnd = ":"
+	valBuffEnd = ";"
+	noResult   = false
 )
 
 var (
@@ -46,7 +46,7 @@ func NewNetstrDelimiter() *NetstrDelimiter {
 // as well as the first occurring error (if any occurred).
 func (d *NetstrDelimiter) Push(b byte) (bool, error) {
 	if d.brokenMode {
-		return NoResult, errors.New("broken")
+		return noResult, errors.New("broken")
 	}
 	return d.processByte(b)
 }
@@ -69,18 +69,18 @@ func (d *NetstrDelimiter) processByte(b byte) (bool, error) {
 // processLenBytes writes the passed byte to the "length buffer",
 // unless the passed byte is the end of the "length buffer".
 func (d *NetstrDelimiter) processLenByte(b byte) (bool, error) {
-	if b == LenBuffEnd[0] {
-		return NoResult, d.useValBuff()
+	if b == lenBuffEnd[0] {
+		return noResult, d.useValBuff()
 	}
 	if d.checkLenByte(b) {
 		if err = d.lenBuff.WriteByte(b); err != nil {
 			d.brokenMode = true
-			return NoResult, errLenInc
+			return noResult, errLenInc
 		}
-		return NoResult, nil
+		return noResult, nil
 	}
 	d.brokenMode = true
-	return NoResult, errLenInv
+	return noResult, errLenInv
 }
 
 // checkLenByte checks that the current byte is a digit.
@@ -102,15 +102,15 @@ func (d *NetstrDelimiter) processValByte(b byte) (bool, error) {
 	}
 	d.valBuffLen--
 	if d.ignoreMode {
-		return NoResult, nil
+		return noResult, nil
 	}
 	// If an error occurs, while writing to the buffer,
 	// the current "value buffer" gets ignored.
 	if err = d.valBuff.WriteByte(b); err != nil {
 		d.ignoreMode = true
-		return NoResult, errValInc
+		return noResult, errValInc
 	}
-	return NoResult, nil
+	return noResult, nil
 }
 
 // useLenBuff overwrites the old result and resets values.

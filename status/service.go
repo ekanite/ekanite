@@ -14,6 +14,7 @@ import (
 	"time"
 )
 
+// Provider is the interface status providers should implement.
 type Provider interface {
 	Status() (map[string]interface{}, error)
 }

@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// Searcher is the interface any object that perform searches should implement.
 type Searcher interface {
 	Search(query string) (<-chan string, error)
 }
@@ -70,23 +71,23 @@ func (s *Server) handleConnection(conn net.Conn) {
 		if err != nil {
 			conn.Close()
 			return
-		} else {
-			query := strings.Trim(b, "\r\n")
-			if query == "" {
-				continue
-			}
-
-			s.Logger.Printf("executing query '%s'", query)
-			c, err := s.Searcher.Search(query)
-			if err != nil {
-				conn.Write([]byte(err.Error()))
-			} else {
-				for s := range c {
-					conn.Write([]byte(s + "\n"))
-				}
-			}
-			// Send two newlines to indicate end-of-results.
-			conn.Write([]byte("\n\n"))
 		}
+
+		query := strings.Trim(b, "\r\n")
+		if query == "" {
+			continue
+		}
+
+		s.Logger.Printf("executing query '%s'", query)
+		c, err := s.Searcher.Search(query)
+		if err != nil {
+			conn.Write([]byte(err.Error()))
+		} else {
+			for s := range c {
+				conn.Write([]byte(s + "\n"))
+			}
+		}
+		// Send two newlines to indicate end-of-results.
+		conn.Write([]byte("\n\n"))
 	}
 }
