@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	// SYSLOG_DELIMITER indicates the start of a syslog line
 	SYSLOG_DELIMITER = `<[0-9]{1,3}>[0-9]\s`
 )
 
@@ -27,44 +28,44 @@ type SyslogDelimiter struct {
 
 // NewSyslogDelimiter returns an initialized SyslogDelimiter.
 func NewSyslogDelimiter(maxSize int) *SyslogDelimiter {
-	self := &SyslogDelimiter{}
-	self.buffer = make([]byte, 0, maxSize)
-	self.regex = startRegex
-	return self
+	s := &SyslogDelimiter{}
+	s.buffer = make([]byte, 0, maxSize)
+	s.regex = startRegex
+	return s
 }
 
 // Push a byte into the SyslogDelimiter. If the byte results in a
 // a new Syslog message, it'll be flagged via the bool.
-func (self *SyslogDelimiter) Push(b byte) (string, bool) {
-	self.buffer = append(self.buffer, b)
-	delimiter := self.regex.FindIndex(self.buffer)
+func (s *SyslogDelimiter) Push(b byte) (string, bool) {
+	s.buffer = append(s.buffer, b)
+	delimiter := s.regex.FindIndex(s.buffer)
 	if delimiter == nil {
 		return "", false
 	}
 
-	if self.regex == startRegex {
+	if s.regex == startRegex {
 		// First match -- switch to the regex for embedded lines, and
 		// drop any leading characters.
-		self.buffer = self.buffer[delimiter[0]:]
-		self.regex = runRegex
+		s.buffer = s.buffer[delimiter[0]:]
+		s.regex = runRegex
 		return "", false
 	}
 
-	dispatch := strings.TrimRight(string(self.buffer[:delimiter[0]]), "\r")
-	self.buffer = self.buffer[delimiter[0]+1:]
+	dispatch := strings.TrimRight(string(s.buffer[:delimiter[0]]), "\r")
+	s.buffer = s.buffer[delimiter[0]+1:]
 	return dispatch, true
 }
 
 // Vestige returns the bytes which have been pushed to SyslogDelimiter, since
 // the last Syslog message was returned, but only if the buffer appears
 // to be a valid syslog message.
-func (self *SyslogDelimiter) Vestige() (string, bool) {
-	delimiter := syslogRegex.FindIndex(self.buffer)
+func (s *SyslogDelimiter) Vestige() (string, bool) {
+	delimiter := syslogRegex.FindIndex(s.buffer)
 	if delimiter == nil {
-		self.buffer = nil
+		s.buffer = nil
 		return "", false
 	}
-	dispatch := strings.TrimRight(string(self.buffer), "\r\n")
-	self.buffer = nil
+	dispatch := strings.TrimRight(string(s.buffer), "\r\n")
+	s.buffer = nil
 	return dispatch, true
 }
