@@ -1,6 +1,6 @@
 _For detailed look at the goals, design, and implementation of this project, check out [these blog posts](http://www.philipotoole.com/tag/ekanite/)._
 # Ekanite [![Circle CI](https://circleci.com/gh/ekanite/ekanite/tree/master.svg?style=svg)](https://circleci.com/gh/ekanite/ekanite/tree/master) [![GoDoc](https://godoc.org/github.com/ekanite/ekanite?status.png)](https://godoc.org/github.com/ekanite/ekanite) [![Go Report Card](https://goreportcard.com/badge/github.com/ekanite/ekanite)](https://goreportcard.com/report/github.com/ekanite/ekanite) [![Release](https://img.shields.io/github/release/ekanite/ekanite.svg)](https://github.com/ekanite/ekanite/releases)
-*Ekanite* is a syslog server with built-in search. Its goal is to do one thing, and do it well -- make log messages received over the network searchable. What it lacks in feature, it makes up for in focus. Built in [Go](http://www.golang.org), it has no external dependencies, which makes deployment easy.
+*Ekanite* is a syslog server with built-in search. Its goal is to do a couple of things, and do them well -- make log messages received over the network searchable. What it lacks in feature, it makes up for in focus. Built in [Go](http://www.golang.org), it has no external dependencies, which makes deployment easy.
 
 Features include:
 
