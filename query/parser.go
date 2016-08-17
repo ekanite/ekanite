@@ -5,21 +5,24 @@ import (
 	"io"
 )
 
+// Expr represents an expression.
 type Expr interface {
 	node()
 }
 
+// FieldExpr represents a field expression.
 type FieldExpr struct {
 	Field string
 	Term  string
 }
 
-func (q *FieldExpr) node() {}
+func (f *FieldExpr) node() {}
 
 func (f *FieldExpr) String() string {
 	return fmt.Sprintf("%s:%s", f.Field, f.Term)
 }
 
+// BinaryExpr represents a binary expression.
 type BinaryExpr struct {
 	Op  Token
 	LHS Expr
@@ -100,6 +103,7 @@ func (p *Parser) lexIgnoreWhitespace() (tok Token, lit string) {
 	return
 }
 
+// Parse parses an expression.
 func (p *Parser) Parse() (Expr, error) {
 	tok, _ := p.lexIgnoreWhitespace()
 	if tok == EOF {
