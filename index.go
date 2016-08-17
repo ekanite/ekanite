@@ -29,6 +29,8 @@ const (
 // left hand side represent the most significant 64-bit number. And therefore the next 16
 // characters represent the least-significant 64-bit number.
 type DocID string
+
+// DocIDs is a slice of DocIDs.
 type DocIDs []DocID
 
 func (a DocIDs) Len() int { return len(a) }
@@ -72,6 +74,8 @@ type Index struct {
 	Shards []*Shard         // Individual bleve indexes
 	Alias  bleve.IndexAlias // All bleve indexes as one reference, for search
 }
+
+// Indexes is a slice of indexes.
 type Indexes []*Index
 
 // Indexes are ordered by decreasing end time.
@@ -81,9 +85,8 @@ func (i Indexes) Len() int { return len(i) }
 func (i Indexes) Less(u, v int) bool {
 	if i[u].endTime.After(i[v].endTime) {
 		return true
-	} else {
-		return i[u].startTime.After(i[v].startTime)
 	}
+	return i[u].startTime.After(i[v].startTime)
 }
 func (i Indexes) Swap(u, v int) { i[u], i[v] = i[v], i[u] }
 
@@ -339,7 +342,7 @@ func NewShard(path string) *Shard {
 	}
 }
 
-// Opens the shard. If no data exists at the shard's path, an empty shard
+// Open opens the shard. If no data exists at the shard's path, an empty shard
 // will be created.
 func (s *Shard) Open() error {
 	_, err := os.Stat(s.path)
