@@ -6,21 +6,19 @@ import "strings"
 type Token int
 
 const (
-	// Special tokens
-	ILLEGAL Token = iota
-	EOF
-	WS
-	COLON
+	ILLEGAL Token = iota // Illegal tokens
+	EOF                  // End-of-file
+	WS                   // Whitespace
+	COLON                // ;
 
 	// Search terms
 	STRING // search fields terms
 
 	keyword_beg
 
-	// Boolean operators
-	AND
-	OR
-	NOT
+	AND // AND boolean
+	OR  // OR boolean
+	NOT // NOT boolean
 
 	keyword_end
 
