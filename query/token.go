@@ -14,13 +14,13 @@ const (
 	// Search terms
 	STRING // search fields terms
 
-	keyword_beg
+	keywordBeg
 
 	AND // AND boolean
 	OR  // OR boolean
 	NOT // NOT boolean
 
-	keyword_end
+	keywordEnd
 
 	LPAREN // (
 	RPAREN // )
@@ -45,7 +45,7 @@ var keywords map[string]Token
 
 func init() {
 	keywords = make(map[string]Token)
-	for tok := keyword_beg + 1; tok < keyword_end; tok++ {
+	for tok := keywordBeg + 1; tok < keywordEnd; tok++ {
 		keywords[strings.ToLower(tokens[tok])] = tok
 	}
 	for _, tok := range []Token{AND, OR} {
