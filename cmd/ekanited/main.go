@@ -105,11 +105,7 @@ func main() {
 
 	// Start the expvar handler if requested.
 	if *diagIface != "" {
-		diagServer := status.NewService(*diagIface)
-
-		if diagServer.Start(); err != nil {
-			log.Fatalf("failed to start status server: %s", err.Error())
-		}
+		startDiagServer(*diagIface)
 	}
 
 	// Create and open the Engine.
@@ -128,26 +124,12 @@ func main() {
 
 	// Start the simple query server if requested.
 	if *queryIface != "" {
-		server := ekanite.NewServer(*queryIface, engine)
-		if server == nil {
-			log.Fatal("failed to create query server")
-		}
-		if err := server.Start(); err != nil {
-			log.Fatalf("failed to start query server: %s", err.Error())
-		}
-		log.Printf("query server listening to %s", *queryIface)
+		startQueryServer(*queryIface, engine)
 	}
 
 	// Start the http query server if requested.
 	if *queryIfaceHttp != "" {
-		server := ekanite.NewHTTPServer(*queryIfaceHttp, engine)
-		if server == nil {
-			log.Fatal("failed to create HTTP query server")
-		}
-		if err := server.Start(); err != nil {
-			log.Fatalf("failed to start HTTP query server: %s", err.Error())
-		}
-		log.Printf("HTTP query server listening to %s", *queryIfaceHttp)
+		startHTTPQueryServer(*queryIfaceHttp, engine)
 	}
 
 	// Create and start the batcher.
@@ -225,6 +207,36 @@ func main() {
 	}
 
 	stopProfile()
+}
+
+func startQueryServer(iface string, engine *ekanite.Engine) {
+	server := ekanite.NewServer(iface, engine)
+	if server == nil {
+		log.Fatal("failed to create query server")
+	}
+	if err := server.Start(); err != nil {
+		log.Fatalf("failed to start query server: %s", err.Error())
+	}
+	log.Printf("query server listening on %s", iface)
+}
+
+func startHTTPQueryServer(iface string, engine *ekanite.Engine) {
+	server := ekanite.NewHTTPServer(iface, engine)
+	if server == nil {
+		log.Fatal("failed to create HTTP query server")
+	}
+	if err := server.Start(); err != nil {
+		log.Fatalf("failed to start HTTP query server: %s", err.Error())
+	}
+	log.Printf("HTTP query server listening on %s", iface)
+}
+
+func startDiagServer(iface string) {
+	diagServer := status.NewService(iface)
+	if err := diagServer.Start(); err != nil {
+		log.Fatalf("failed to start status server on %s: %s", iface, err.Error())
+	}
+	log.Printf("diagnostic server listening on %s", iface)
 }
 
 func newTLSConfig(caPemPath, caKeyPath string) (*tls.Config, error) {
