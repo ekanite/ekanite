@@ -217,7 +217,7 @@ func startQueryServer(iface string, engine *ekanite.Engine) {
 	if err := server.Start(); err != nil {
 		log.Fatalf("failed to start query server: %s", err.Error())
 	}
-	log.Printf("query server listening to %s", iface)
+	log.Printf("query server listening on %s", iface)
 }
 
 func startHTTPQueryServer(iface string, engine *ekanite.Engine) {
@@ -228,7 +228,7 @@ func startHTTPQueryServer(iface string, engine *ekanite.Engine) {
 	if err := server.Start(); err != nil {
 		log.Fatalf("failed to start HTTP query server: %s", err.Error())
 	}
-	log.Printf("HTTP query server listening to %s", iface)
+	log.Printf("HTTP query server listening on %s", iface)
 }
 
 func startDiagServer(iface string) {
@@ -236,6 +236,7 @@ func startDiagServer(iface string) {
 	if err := diagServer.Start(); err != nil {
 		log.Fatalf("failed to start status server on %s: %s", iface, err.Error())
 	}
+	log.Printf("diagnostic server listening on %s", iface)
 }
 
 func newTLSConfig(caPemPath, caKeyPath string) (*tls.Config, error) {
