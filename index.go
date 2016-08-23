@@ -175,27 +175,12 @@ func OpenIndex(path string) (*Index, error) {
 		}
 	}
 
-	// Get an index directory listing.
-	d, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	fis, err := d.Readdir(0)
-	if err != nil {
-		return nil, err
-	}
-
-	// Get the shard names in alphabetical order.
-	var names []string
-	for _, fi := range fis {
-		if !fi.IsDir() || strings.HasPrefix(fi.Name(), ".") {
-			continue
-		}
-		names = append(names, fi.Name())
-	}
-	sort.Strings(names)
-
 	// Open the shards.
+	names, err := listShards(path)
+	if err != nil {
+		return nil, err
+	}
+
 	shards := make([]*Shard, 0)
 	for _, name := range names {
 		s := NewShard(filepath.Join(path, name))
@@ -403,6 +388,33 @@ func (s *Shard) Document(id DocID) ([]byte, error) {
 		return nil, err
 	}
 	return source, nil
+}
+
+// listShards returns the list of shards, in alphabetical order, in
+// the given directory.
+func listShards(path string) ([]string, error) {
+	// Get an index directory listing.
+	d, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Close()
+
+	fis, err := d.Readdir(0)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the shard names in alphabetical order.
+	var names []string
+	for _, fi := range fis {
+		if !fi.IsDir() || strings.HasPrefix(fi.Name(), ".") {
+			continue
+		}
+		names = append(names, fi.Name())
+	}
+	sort.Strings(names)
+	return names, nil
 }
 
 func buildIndexMapping() (*bleve.IndexMapping, error) {
