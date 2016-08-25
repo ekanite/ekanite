@@ -181,11 +181,7 @@ func main() {
 
 	// Start UDP collector if requested.
 	if *udpIface != "" {
-		collector, err := input.NewCollector("udp", *udpIface, *inputFormat, nil)
-		if collector == nil {
-			log.Fatalf("failed to create UDP collector: %s", err.Error())
-		}
-		if err := collector.Start(batcher.C()); err != nil {
+		if err := startUDPCollector(*udpIface, *inputFormat, batcher); err != nil {
 			log.Fatalf("failed to start UDP collector: %s", err.Error())
 		}
 		log.Printf("UDP collector listening to %s", *udpIface)
@@ -207,6 +203,18 @@ func main() {
 	}
 
 	stopProfile()
+}
+
+func startUDPCollector(iface, format string, batcher *ekanite.Batcher) error {
+	collector, err := input.NewCollector("udp", iface, format, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create UDP collector: %s", err.Error())
+	}
+	if err := collector.Start(batcher.C()); err != nil {
+		return fmt.Errorf("failed to start UDP collector: %s", err.Error())
+	}
+
+	return nil
 }
 
 func startQueryServer(iface string, engine *ekanite.Engine) {
