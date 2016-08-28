@@ -160,19 +160,19 @@ func OpenIndex(path string) (*Index, error) {
 	}
 
 	var endTime time.Time
-	if f, err := os.Open(filepath.Join(path, endTimeFileName)); err != nil {
+	f, err := os.Open(filepath.Join(path, endTimeFileName))
+	if err != nil {
 		return nil, fmt.Errorf("unable to open end time file for index: %s", err.Error())
-	} else {
-		defer f.Close()
-		r := bufio.NewReader(f)
-		if s, err := r.ReadString('\n'); err != nil && err != io.EOF {
-			return nil, fmt.Errorf("unable to determine end time of index: %s", err.Error())
-		} else {
-			endTime, err = time.Parse(indexNameLayout, s)
-			if err != nil {
-				return nil, fmt.Errorf("unable to parse end time from '%s': %s", s, err.Error())
-			}
-		}
+	}
+	defer f.Close()
+	r := bufio.NewReader(f)
+	s, err := r.ReadString('\n')
+	if err != nil && err != io.EOF {
+		return nil, fmt.Errorf("unable to determine end time of index: %s", err.Error())
+	}
+	endTime, err = time.Parse(indexNameLayout, s)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse end time from '%s': %s", s, err.Error())
 	}
 
 	// Open the shards.
