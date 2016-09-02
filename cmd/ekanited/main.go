@@ -147,16 +147,7 @@ func main() {
 		*batchSize, batcherTimeout, *indexMaxPending)
 
 	// Start draining batcher errors.
-	go func() {
-		for {
-			select {
-			case err := <-errChan:
-				if err != nil {
-					log.Printf("error indexing batch: %s", err.Error())
-				}
-			}
-		}
-	}()
+	go drainLog("error indexing batch", errChan)
 
 	// Start TCP collector if requested.
 	if *tcpIface != "" {
@@ -284,6 +275,18 @@ func newTLSConfig(caPemPath, caKeyPath string) (*tls.Config, error) {
 	config.Rand = rand.Reader
 
 	return config, nil
+}
+
+// drainLog drains errors from the channel and simply logs them
+func drainLog(msg string, errChan <-chan error) {
+	for {
+		select {
+		case err := <-errChan:
+			if err != nil {
+				log.Printf("%s: %s", msg, err.Error())
+			}
+		}
+	}
 }
 
 // prof stores the file locations of active profiles.
