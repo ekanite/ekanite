@@ -123,18 +123,20 @@ func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
 			stats.Add("tcpConnReadError", 1)
 			if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
 				stats.Add("tcpConnReadTimeout", 1)
-				log, match = delimiter.Vestige()
 			} else if err == io.EOF {
 				stats.Add("tcpConnReadEOF", 1)
-				log, match = delimiter.Vestige()
 			} else {
 				stats.Add("tcpConnUnrecoverError", 1)
 				return
 			}
+
+			log, match = delimiter.Vestige()
 		} else {
 			stats.Add("tcpBytesRead", 1)
 			log, match = delimiter.Push(b)
 		}
+
+		// Log line available?
 		if match {
 			stats.Add("tcpEventsRx", 1)
 			if s.parser.Parse(bytes.NewBufferString(log).Bytes()) {
@@ -146,6 +148,11 @@ func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
 					SourceIP:      conn.RemoteAddr().String(),
 				}
 			}
+		}
+
+		// Was the connection closed?
+		if err == io.EOF {
+			return
 		}
 	}
 }

@@ -46,6 +46,43 @@ func (s *testSystem) IngestConn() net.Conn {
 	return conn
 }
 
+// Test_SingleLineTimeout ensures a log line is detected without closing the connection.
+func Test_SingleLineTimeout(t *testing.T) {
+	path := tempPath()
+	defer os.RemoveAll(path)
+	sys := NewSystem(path)
+	ingestConn := sys.IngestConn()
+
+	line := "<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - password rejected"
+	n, err := ingestConn.Write([]byte(line))
+	if err != nil {
+		t.Fatalf("failed to write '%s' to Collector: %s", line, err.Error())
+	}
+	if n != len(line) {
+		t.Fatalf("insufficient bytes written to Collector, exp: %d, wrote: %d", len(line), n)
+	}
+	sys.e.waitForCount(1)
+}
+
+// Test_SingleLineClose ensures a log line is detected after closing a connection.
+func Test_SingleLineClose(t *testing.T) {
+	path := tempPath()
+	defer os.RemoveAll(path)
+	sys := NewSystem(path)
+	ingestConn := sys.IngestConn()
+
+	line := "<33>5 1985-04-12T23:20:50.52Z test.com cron 304 - password rejected"
+	n, err := ingestConn.Write([]byte(line))
+	if err != nil {
+		t.Fatalf("failed to write '%s' to Collector: %s", line, err.Error())
+	}
+	if n != len(line) {
+		t.Fatalf("insufficient bytes written to Collector, exp: %d, wrote: %d", len(line), n)
+	}
+	ingestConn.Close()
+	sys.e.waitForCount(1)
+}
+
 // Test_EndToEnd ensures a complete system operates as expected.
 func Test_EndToEnd(t *testing.T) {
 	path := tempPath()
