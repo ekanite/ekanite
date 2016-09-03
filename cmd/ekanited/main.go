@@ -103,9 +103,10 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	log.Println("GOMAXPROCS set to", runtime.GOMAXPROCS(0))
 
-	// Start the expvar handler if requested.
+	// Start the status service if requested.
+	var diagService *status.Service
 	if *diagIface != "" {
-		startDiagServer(*diagIface)
+		diagService = startDiagServer(*diagIface)
 	}
 
 	// Create and open the Engine.
@@ -168,6 +169,7 @@ func main() {
 			log.Fatalf("failed to start TCP collector: %s", err.Error())
 		}
 		log.Printf("TCP collector listening to %s", *tcpIface)
+		diagService.Register("tcp", collector)
 	}
 
 	// Start UDP collector if requested.
@@ -230,12 +232,13 @@ func startHTTPQueryServer(iface string, engine *ekanite.Engine) {
 	log.Printf("HTTP query server listening on %s", iface)
 }
 
-func startDiagServer(iface string) {
+func startDiagServer(iface string) *status.Service {
 	diagServer := status.NewService(iface)
 	if err := diagServer.Start(); err != nil {
 		log.Fatalf("failed to start status server on %s: %s", iface, err.Error())
 	}
 	log.Printf("diagnostic server listening on %s", iface)
+	return diagServer
 }
 
 func newTLSConfig(caPemPath, caKeyPath string) (*tls.Config, error) {

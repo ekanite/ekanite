@@ -36,9 +36,10 @@ type Service struct {
 // NewService returns an initialized Service object.
 func NewService(addr string) *Service {
 	return &Service{
-		addr:   addr,
-		start:  time.Now(),
-		logger: log.New(os.Stderr, "[status] ", log.LstdFlags),
+		addr:      addr,
+		start:     time.Now(),
+		providers: make(map[string]Provider),
+		logger:    log.New(os.Stderr, "[status] ", log.LstdFlags),
 	}
 }
 
@@ -76,8 +77,13 @@ func (s *Service) Addr() net.Addr {
 	return s.ln.Addr()
 }
 
-// Register registers the given provider with the given key.
+// Register registers the given provider with the given key. Calls to register
+// providers on uninitialized services will be ignored.
 func (s *Service) Register(key string, provider Provider) {
+	if s == nil {
+		return
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.providers[key] = provider
