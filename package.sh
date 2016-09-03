@@ -1,6 +1,10 @@
 #!/bin/bash
 #
 # Simple script for creating releases and optionally uploading to GitHub
+#
+# To determine the release ID, execute this command:
+#
+#   curl https://api.github.com/repos/ekanite/ekanite/releases
 
 if [ $# -lt 1 ]; then
     echo "$0 <version> [api_token release_id]"
