@@ -127,6 +127,7 @@ func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
 			} else if err == io.EOF {
 				stats.Add("tcpConnReadEOF", 1)
 				log, match = delimiter.Vestige()
+				return
 			} else {
 				stats.Add("tcpConnUnrecoverError", 1)
 				return
