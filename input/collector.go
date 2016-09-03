@@ -9,6 +9,7 @@ import (
 	"io"
 	"net"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -29,6 +30,7 @@ const (
 type Collector interface {
 	Start(chan<- *Event) error
 	Addr() net.Addr
+	Status() (map[string]interface{}, error)
 }
 
 // TCPCollector represents a network collector that accepts and handler TCP connections.
@@ -38,6 +40,9 @@ type TCPCollector struct {
 
 	addr      net.Addr
 	tlsConfig *tls.Config
+
+	mu    sync.RWMutex
+	conns map[string]net.Conn
 }
 
 // UDPCollector represents a network collector that accepts UDP packets.
@@ -60,6 +65,7 @@ func NewCollector(proto, iface, format string, tlsConfig *tls.Config) (Collector
 			iface:     iface,
 			parser:    parser,
 			tlsConfig: tlsConfig,
+			conns:     make(map[string]net.Conn),
 		}, nil
 	} else if strings.ToLower(proto) == "udp" {
 		addr, err := net.ResolveUDPAddr("udp", iface)
@@ -104,10 +110,34 @@ func (s *TCPCollector) Addr() net.Addr {
 	return s.addr
 }
 
+// Status returns the status of the TCP collector.
+func (s *TCPCollector) Status() (map[string]interface{}, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	status := make(map[string]interface{})
+	connections := make([]string, 0)
+	for k, _ := range s.conns {
+		connections = append(connections, k)
+	}
+
+	status["connections"] = connections
+	return status, nil
+}
+
 func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
 	stats.Add("tcpConnections", 1)
+
+	s.mu.Lock()
+	s.conns[conn.RemoteAddr().String()] = conn
+	s.mu.Unlock()
+
 	defer func() {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+
 		stats.Add("tcpConnections", -1)
+		delete(s.conns, conn.RemoteAddr().String())
 		conn.Close()
 	}()
 
@@ -124,9 +154,12 @@ func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
 			if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
 				stats.Add("tcpConnReadTimeout", 1)
 				log, match = delimiter.Vestige()
+				fmt.Println(">>>>>>>>>>>returning TIMEOUT")
 			} else if err == io.EOF {
 				stats.Add("tcpConnReadEOF", 1)
 				log, match = delimiter.Vestige()
+				fmt.Println(">>>>>>>>>>>returning EOF, log, match:", log, match)
+				return
 			} else {
 				stats.Add("tcpConnUnrecoverError", 1)
 				return
@@ -136,6 +169,7 @@ func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
 			log, match = delimiter.Push(b)
 		}
 		if match {
+			fmt.Println("match")
 			stats.Add("tcpEventsRx", 1)
 			if s.parser.Parse(bytes.NewBufferString(log).Bytes()) {
 				c <- &Event{
@@ -184,4 +218,9 @@ func (s *UDPCollector) Start(c chan<- *Event) error {
 // Addr returns the net.Addr to which the UDP collector is bound.
 func (s *UDPCollector) Addr() net.Addr {
 	return s.addr
+}
+
+// Status returns the status of the UDP collector.
+func (s *UDPCollector) Status() (map[string]interface{}, error) {
+	return nil, nil
 }
