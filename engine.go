@@ -349,8 +349,7 @@ func (e *Engine) Search(query string) (<-chan string, error) {
 	defer e.mu.RUnlock()
 	stats.Add("queriesRx", 1)
 
-	// Buffer channel to control how many docs are sent back. XXX Will this allow
-	// the client to control? Possibly.
+	// Buffer channel to control how many docs are sent back.
 	c := make(chan string, 1)
 
 	go func() {
