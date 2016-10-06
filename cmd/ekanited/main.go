@@ -196,6 +196,10 @@ func main() {
 	stopProfile()
 }
 
+func startTCPCollector(iface, format string, tls *tls.Config, batcher *ekanite.Batcher) error {
+    return nil
+}
+
 func startUDPCollector(iface, format string, batcher *ekanite.Batcher) error {
 	collector, err := input.NewCollector("udp", iface, format, nil)
 	if err != nil {
