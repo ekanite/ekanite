@@ -160,11 +160,7 @@ func main() {
 			log.Printf("TLS successfully configured")
 		}
 
-		collector, err := input.NewCollector("tcp", *tcpIface, *inputFormat, tlsConfig)
-		if err != nil {
-			log.Fatalf("failed to create TCP collector: %s", err.Error())
-		}
-		if err := collector.Start(batcher.C()); err != nil {
+		if err := startTCPCollector(*tcpIface, *inputFormat, tlsConfig, batcher); err != nil {
 			log.Fatalf("failed to start TCP collector: %s", err.Error())
 		}
 		log.Printf("TCP collector listening to %s", *tcpIface)
@@ -197,7 +193,15 @@ func main() {
 }
 
 func startTCPCollector(iface, format string, tls *tls.Config, batcher *ekanite.Batcher) error {
-    return nil
+	collector, err := input.NewCollector("tcp", iface, format, tls)
+	if err != nil {
+		return fmt.Errorf(("failed to create TCP collector: %s"), err.Error())
+	}
+	if err := collector.Start(batcher.C()); err != nil {
+		return fmt.Errorf("failed to start TCP collector: %s", err.Error())
+	}
+
+	return nil
 }
 
 func startUDPCollector(iface, format string, batcher *ekanite.Batcher) error {
