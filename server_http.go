@@ -1,12 +1,12 @@
 package ekanite
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -83,7 +83,9 @@ func (s *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		userQuery := r.FormValue("query")
 		s.Logger.Printf("executing query '%s'", userQuery)
 
+		start := time.Now()
 		resultSet, err := s.Searcher.Search(userQuery)
+		dur := time.Since(start)
 		var resultSlice []string
 
 		if err != nil {
@@ -103,7 +105,7 @@ func (s *HTTPServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			LogMessages   []string
 		}{
 			"Ekanite query interface",
-			"Ekanite - Listing " + strconv.Itoa(len(resultSlice)) + " results for '" + userQuery + "'",
+			fmt.Sprintf(`Ekanite - Listing %d results for "%s" (%s)`, len(resultSlice), userQuery, dur.String()),
 			true,
 			resultSlice,
 		}
