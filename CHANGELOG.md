@@ -1,5 +1,6 @@
-## 1.1.1 (unreleased)
+## 1.1.1 (October 6th 2016)
 - [PR #60](https://github.com/ekanite/ekanite/pull/60): Integrate latest bleve API changes.
+- Go cyclo changes.
 
 ## 1.1.0 (September 3rd 2016)
 - [PR #57](https://github.com/ekanite/ekanite/pull/57): Correctly handle closed TCP connections.
