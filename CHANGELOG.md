@@ -1,5 +1,6 @@
 ## 1.2.0 (unreleased)
 - [PR #63](https://github.com/ekanite/ekanite/pull/63): Add search duration to HTTP query service output.
+- Go cyclo changes.
 
 ## 1.1.1 (October 6th 2016)
 - [PR #60](https://github.com/ekanite/ekanite/pull/60): Integrate latest bleve API changes.
