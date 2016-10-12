@@ -110,9 +110,6 @@ func main() {
 
 	// Create and open the Engine.
 	engine := ekanite.NewEngine(absDataDir)
-	if engine == nil {
-		log.Fatalf("failed to create indexing engine at %s", absDataDir)
-	}
 	engine.NumShards = *numShards
 	engine.RetentionPeriod = retention
 
