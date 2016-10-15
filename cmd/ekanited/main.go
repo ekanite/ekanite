@@ -132,9 +132,6 @@ func main() {
 	// Create and start the batcher.
 	batcherTimeout := time.Duration(*batchTimeout) * time.Millisecond
 	batcher := ekanite.NewBatcher(engine, *batchSize, batcherTimeout, *indexMaxPending)
-	if batcher == nil {
-		log.Fatal("failed to create indexing batcher")
-	}
 
 	errChan := make(chan error)
 	if err := batcher.Start(errChan); err != nil {
