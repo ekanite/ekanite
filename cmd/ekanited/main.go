@@ -173,15 +173,8 @@ func main() {
 
 	stats.Set("launch", time.Now().UTC())
 
-	// Set up signal handling.
-	signalCh := make(chan os.Signal, 1)
-	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-
-	// Block until one of the signals above is received
-	select {
-	case <-signalCh:
-		log.Println("signal received, shutting down...")
-	}
+	// Wait forever for signals.
+	waitForSignals()
 
 	stopProfile()
 }
@@ -288,6 +281,19 @@ func drainLog(msg string, errChan <-chan error) {
 				log.Printf("%s: %s", msg, err.Error())
 			}
 		}
+	}
+}
+
+// waitForSignals blocks until a signal is received.
+func waitForSignals() {
+	// Set up signal handling.
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
+
+	// Block until one of the signals above is received
+	select {
+	case <-signalCh:
+		log.Println("signal received, shutting down...")
 	}
 }
 
