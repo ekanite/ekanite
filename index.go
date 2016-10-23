@@ -360,7 +360,7 @@ func (s *Shard) Close() error {
 	return nil
 }
 
-// Index indexes a slice of Documents in the shard.
+// Index indexes a slice of Documents into the shard.
 func (s *Shard) Index(documents []Document) error {
 	batch := s.b.NewBatch()
 
@@ -382,7 +382,7 @@ func (s *Shard) Total() (uint64, error) {
 	return s.b.DocCount()
 }
 
-// Document returns the source from the shard for the given ID.
+// Document returns the source document from the shard for the given ID.
 func (s *Shard) Document(id DocID) ([]byte, error) {
 	source, err := s.b.GetInternal([]byte(id))
 	if err != nil {
