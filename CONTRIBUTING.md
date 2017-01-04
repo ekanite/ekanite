@@ -1,4 +1,6 @@
 # Building
+*Building Ekanite requires Go 1.5 or later. [gvm](https://github.com/moovweb/gvm) is a great tool for installing and managing your versions of Go.*
+
 Tested on 64-bit Kubuntu 14.04.
 
     mkdir ~/ekanite # Or a directory of your choice.
