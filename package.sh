@@ -7,15 +7,15 @@
 #   curl https://api.github.com/repos/ekanite/ekanite/releases
 
 if [ $# -lt 1 ]; then
-    echo "$0 <version> [api_token release_id]"
+    echo "$0 <version> [release_id api_token]"
     exit 1
 fi
 
-REPO_URL="https://github.com/ekanite/ekanite"
+REPO_URL="https://github.com/rqlite/rqlite"
 
 VERSION=$1
-API_TOKEN=$2
-RELEASE_ID=$3
+RELEASE_ID=$2
+API_TOKEN=$3
 
 tmp_build=`mktemp -d`
 tmp_pkg=`mktemp -d`
