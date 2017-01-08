@@ -207,7 +207,7 @@ func (e *Engine) Total() (uint64, error) {
 	return total, nil
 }
 
-// runRetentionEnforcement periodically run retention enforcement.
+// runRetentionEnforcement periodically runs retention enforcement.
 func (e *Engine) runRetentionEnforcement() {
 	defer e.wg.Done()
 	for {
