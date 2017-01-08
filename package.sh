@@ -11,7 +11,7 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
-REPO_URL="https://github.com/rqlite/rqlite"
+REPO_URL="https://github.com/ekanite/ekanite"
 
 VERSION=$1
 RELEASE_ID=$2
