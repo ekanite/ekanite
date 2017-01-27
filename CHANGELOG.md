@@ -1,6 +1,6 @@
 ## 1.2.0 (January 3rd 2017)
 - [PR #63](https://github.com/ekanite/ekanite/pull/63): Add search duration to HTTP query service output.
-- Go cyclo changes.
+- Cyclomatic complexity improvements.
 - With this release Ekanite is moving to Go 1.7.
 
 ## 1.1.1 (October 6th 2016)
