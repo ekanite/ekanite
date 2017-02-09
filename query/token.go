@@ -11,7 +11,7 @@ const (
 	WS                   // Whitespace
 	COLON                // ;
 
-	// Search terms
+	// STRING represents search terms
 	STRING // search fields terms
 
 	keywordBeg
