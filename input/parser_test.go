@@ -181,6 +181,20 @@ func Test_Parsing(t *testing.T) {
 		},
 		{
 			fmt:     "syslog",
+			message: `<134>0 2017-06-04T14:09:13+02:00 192.168.1.217 filterlog - - 67,,,0,vtnet0,match,pass,out,4,0x0,,127,3328,0,DF,6,tcp,366,192.168.1.66,31.13.86.4,50800,443,326,PA,1912507082:1912507408,2077294259,257,,`,
+			expected: map[string]interface{}{
+				"priority":   134,
+				"version":    0,
+				"timestamp":  "2017-06-04T14:09:13+02:00",
+				"host":       "192.168.1.217",
+				"app":        "filterlog",
+				"pid":        0,
+				"message_id": "-",
+				"message":    `67,,,0,vtnet0,match,pass,out,4,0x0,,127,3328,0,DF,6,tcp,366,192.168.1.66,31.13.86.4,50800,443,326,PA,1912507082:1912507408,2077294259,257,,`,
+			},
+		},
+		{
+			fmt:     "syslog",
 			message: `<134> 2013-09-04T10:25:52.618085 ubuntu sshd 1999 - password accepted`,
 			fail:    true,
 		},
