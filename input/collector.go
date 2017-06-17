@@ -34,7 +34,7 @@ type Collector interface {
 // TCPCollector represents a network collector that accepts and handler TCP connections.
 type TCPCollector struct {
 	iface  string
-	parser *Parser
+	format string
 
 	addr      net.Addr
 	tlsConfig *tls.Config
@@ -42,15 +42,17 @@ type TCPCollector struct {
 
 // UDPCollector represents a network collector that accepts UDP packets.
 type UDPCollector struct {
+	format string
 	addr   *net.UDPAddr
-	parser *Parser
 }
 
 // NewCollector returns a network collector of the specified type, that will bind
 // to the given inteface on Start(). If config is non-nil, a secure Collector will
 // be returned. Secure Collectors require the protocol be TCP.
 func NewCollector(proto, iface, format string, tlsConfig *tls.Config) (Collector, error) {
-	parser, err := NewParser(format)
+	// Verify that a parser can be instantiated. The actual parser that is used will
+	// be created by the connection handler.
+	_, err := NewParser(format)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +60,7 @@ func NewCollector(proto, iface, format string, tlsConfig *tls.Config) (Collector
 	if strings.ToLower(proto) == "tcp" {
 		return &TCPCollector{
 			iface:     iface,
-			parser:    parser,
+			format:    format,
 			tlsConfig: tlsConfig,
 		}, nil
 	} else if strings.ToLower(proto) == "udp" {
@@ -67,7 +69,7 @@ func NewCollector(proto, iface, format string, tlsConfig *tls.Config) (Collector
 			return nil, err
 		}
 
-		return &UDPCollector{addr: addr, parser: parser}, nil
+		return &UDPCollector{addr: addr, format: format}, nil
 	}
 	return nil, fmt.Errorf("unsupport collector protocol")
 }
@@ -111,6 +113,11 @@ func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
 		conn.Close()
 	}()
 
+	parser, err := NewParser(s.format)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create TCP connection parser:%s", err.Error()))
+	}
+
 	delimiter := NewSyslogDelimiter(msgBufSize)
 	reader := bufio.NewReader(conn)
 	var log string
@@ -139,10 +146,10 @@ func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
 		// Log line available?
 		if match {
 			stats.Add("tcpEventsRx", 1)
-			if s.parser.Parse(bytes.NewBufferString(log).Bytes()) {
+			if parser.Parse(bytes.NewBufferString(log).Bytes()) {
 				c <- &Event{
-					Text:          string(s.parser.Raw),
-					Parsed:        s.parser.Result,
+					Text:          string(parser.Raw),
+					Parsed:        parser.Result,
 					ReceptionTime: time.Now().UTC(),
 					Sequence:      atomic.AddInt64(&sequenceNumber, 1),
 					SourceIP:      conn.RemoteAddr().String(),
@@ -164,6 +171,11 @@ func (s *UDPCollector) Start(c chan<- *Event) error {
 		return err
 	}
 
+	parser, err := NewParser(s.format)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create UDP parser:%s", err.Error()))
+	}
+
 	go func() {
 		buf := make([]byte, msgBufSize)
 		for {
@@ -173,10 +185,10 @@ func (s *UDPCollector) Start(c chan<- *Event) error {
 				continue
 			}
 			log := strings.Trim(string(buf[:n]), "\r\n")
-			if s.parser.Parse(bytes.NewBufferString(log).Bytes()) {
+			if parser.Parse(bytes.NewBufferString(log).Bytes()) {
 				c <- &Event{
 					Text:          log,
-					Parsed:        s.parser.Result,
+					Parsed:        parser.Result,
 					ReceptionTime: time.Now().UTC(),
 					Sequence:      atomic.AddInt64(&sequenceNumber, 1),
 					SourceIP:      addr.String(),
