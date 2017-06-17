@@ -21,7 +21,7 @@ func NewEvent() *Event {
 // ReferenceTime returns the reference time of an event.
 func (e *Event) ReferenceTime() time.Time {
 	if e.referenceTime.IsZero() {
-		if e.Parsed == nil {
+		if e.Parsed == nil ||  e.Parsed["timestamp"] == nil {
 			e.referenceTime = e.ReceptionTime
 		} else if refTime, err := time.Parse(time.RFC3339, e.Parsed["timestamp"].(string)); err != nil {
 			e.referenceTime = e.ReceptionTime
