@@ -1,3 +1,6 @@
+## 1.2.1 (June 17th 2017)
+- [PR #76](https://github.com/ekanite/ekanite/pull/76): Don't share parsers. Fixes [issue #75](https://github.com/ekanite/ekanite/issues/75).
+
 ## 1.2.0 (January 3rd 2017)
 - [PR #63](https://github.com/ekanite/ekanite/pull/63): Add search duration to HTTP query service output.
 - Cyclomatic complexity improvements.
