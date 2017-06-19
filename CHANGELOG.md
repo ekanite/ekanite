@@ -1,3 +1,6 @@
+## 1.2.2 (unrelease)
+- [PR #77](https://github.com/ekanite/ekanite/pull/77): Don't panic if interface already in use. Thanks @mysinmyc
+
 ## 1.2.1 (June 17th 2017)
 With this release Ekanite is moving to Go 1.8.
 - [PR #76](https://github.com/ekanite/ekanite/pull/76): Don't share parsers. Fixes [issue #75](https://github.com/ekanite/ekanite/issues/75). Thanks @mysinmyc 
