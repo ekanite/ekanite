@@ -83,11 +83,9 @@ func (s *TCPCollector) Start(c chan<- *Event) error {
 	} else {
 		ln, err = tls.Listen("tcp", s.iface, s.tlsConfig)
 	}
-
 	if err != nil {
 		return err
 	}
-
 	s.addr = ln.Addr()
 
 	go func() {
