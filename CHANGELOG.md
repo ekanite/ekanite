@@ -1,4 +1,4 @@
-## 1.2.2 (unreleased)
+## 1.2.2 (June 25th 2017)
 - [PR #77](https://github.com/ekanite/ekanite/pull/77): Don't panic if interface already in use. Thanks @mysinmyc
 
 ## 1.2.1 (June 17th 2017)
