@@ -1,3 +1,6 @@
+## 1.2.3 (unreleased)
+- [PR #78](https://github.com/ekanite/ekanite/pull/78): Type "time" cannot be used as an expvar value.
+
 ## 1.2.2 (June 25th 2017)
 - [PR #77](https://github.com/ekanite/ekanite/pull/77): Don't panic if interface already in use. Thanks @mysinmyc
 
