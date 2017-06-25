@@ -171,8 +171,6 @@ func main() {
 	// Start profiling.
 	startProfile(*cpuProfile, *memProfile)
 
-	stats.Set("launch", time.Now().UTC())
-
 	// Wait forever for signals.
 	waitForSignals()
 
