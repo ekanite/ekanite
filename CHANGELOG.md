@@ -1,3 +1,6 @@
+## 1.2.4 (unreleased)
+- [PR #81](https://github.com/ekanite/ekanite/pull/81): Close engine on exit.
+
 ## 1.2.3 (July 6th 2017)
 - [PR #78](https://github.com/ekanite/ekanite/pull/78): Type "time" cannot be used as an expvar value.
 
