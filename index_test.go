@@ -43,10 +43,10 @@ func TestIndex_NewIndex(t *testing.T) {
 	existOrFail(t, path+"/20060102_2204")
 	existOrFail(t, path+"/20060102_2204/endtime")
 	containsOrFail(t, path+"/20060102_2204/endtime", "20060102_2304")
-	existOrFail(t, path+"/20060102_2204/0")
-	existOrFail(t, path+"/20060102_2204/1")
-	existOrFail(t, path+"/20060102_2204/2")
-	existOrFail(t, path+"/20060102_2204/3")
+	existOrFail(t, path+"/20060102_2204/0000")
+	existOrFail(t, path+"/20060102_2204/0001")
+	existOrFail(t, path+"/20060102_2204/0002")
+	existOrFail(t, path+"/20060102_2204/0003")
 
 	tests := []struct {
 		timestamp     string
