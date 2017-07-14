@@ -23,6 +23,7 @@ const (
 	endTimeFileName  = "endtime"
 	indexNameLayout  = "20060102_1504"
 	maxSearchHitSize = 10000
+	maxShardCount    = 9999
 )
 
 // DocID is a string, with the following configuration. It's 32-characters long, encoding 2
@@ -98,6 +99,10 @@ func NewIndex(path string, startTime, endTime time.Time, numShards int) (*Index,
 	indexPath := filepath.Join(path, indexName)
 	durationPath := filepath.Join(indexPath, endTimeFileName)
 
+	if numShards > maxShardCount {
+		return nil, fmt.Errorf("requested shard count exceeds maximum of %d", maxShardCount)
+	}
+
 	// Create the directory for the index, if it doesn't already exist.
 	if _, err := os.Stat(indexPath); err == nil && os.IsNotExist(err) {
 		return nil, fmt.Errorf("index already exists at %s", indexPath)
@@ -121,7 +126,7 @@ func NewIndex(path string, startTime, endTime time.Time, numShards int) (*Index,
 	// Create the shards.
 	shards := make([]*Shard, 0, numShards)
 	for n := 0; n < numShards; n++ {
-		s := NewShard(filepath.Join(indexPath, strconv.Itoa(n)))
+		s := NewShard(filepath.Join(indexPath, fmt.Sprintf("%04d", n)))
 		if err := s.Open(); err != nil {
 			return nil, err
 		}
