@@ -174,6 +174,8 @@ func main() {
 	// Wait forever for signals.
 	waitForSignals()
 
+	engine.Close()
+
 	stopProfile()
 }
 
