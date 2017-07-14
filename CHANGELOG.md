@@ -1,6 +1,6 @@
 ## 2.0.0 (unreleased)
 - [PR #81](https://github.com/ekanite/ekanite/pull/81): Close engine on exit.
-- [PR #82](https://github.com/ekanite/ekanite/pull/81): Name shards so that they are always loaded correctly on restart. 
+- [PR #82](https://github.com/ekanite/ekanite/pull/82): Name shards so that they are always loaded correctly on restart. 
 
 ## 1.2.3 (July 6th 2017)
 - [PR #78](https://github.com/ekanite/ekanite/pull/78): Type "time" cannot be used as an expvar value.
