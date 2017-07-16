@@ -10,6 +10,8 @@ type SyslogDelimiterFSM struct {
 	buffer       []byte
 	state        fsmState
 	firstMatched bool
+
+	priLen int
 }
 
 // NewSyslogDelimiterFSM returns an initialized SyslogDelimiterFSM.
@@ -30,7 +32,6 @@ func (s *SyslogDelimiterFSM) Push(b byte) (string, bool) {
 		if b == '<' {
 			s.state = priVal0
 		}
-		return "", false
 	case priVal0:
 		if isDigit(b) {
 			s.state = priVal1
@@ -38,28 +39,27 @@ func (s *SyslogDelimiterFSM) Push(b byte) (string, bool) {
 			// Invalid, reset parser.
 			s.state = priStart
 		}
-		return "", false
 	case priVal1:
 		if isDigit(b) {
+			s.priLen = 1
 			s.state = priVal2
 		} else if b == '>' {
 			s.state = version
 		}
-		return "", false
 	case priVal2:
 		if isDigit(b) {
+			s.priLen = 2
 			s.state = priVal3
 		} else if b == '>' {
 			s.state = version
 		}
-		return "", false
 	case priVal3:
 		if isDigit(b) {
+			s.priLen = 3
 			s.state = priEnd
 		} else if b == '>' {
 			s.state = version
 		}
-		return "", false
 	case priEnd:
 		if b == '>' {
 			s.state = version
@@ -67,7 +67,6 @@ func (s *SyslogDelimiterFSM) Push(b byte) (string, bool) {
 			// Invalid, reset parser.
 			s.state = priStart
 		}
-		return "", false
 	case version:
 		if isDigit(b) {
 			s.state = postVersion
@@ -75,7 +74,6 @@ func (s *SyslogDelimiterFSM) Push(b byte) (string, bool) {
 			// Invalid, reset parser.
 			s.state = priStart
 		}
-		return "", false
 	case postVersion:
 		if b == ' ' {
 			s.state = newline_r
@@ -83,36 +81,47 @@ func (s *SyslogDelimiterFSM) Push(b byte) (string, bool) {
 			// Invalid, reset parser.
 			s.state = priStart
 		}
-		return "", false
 	case newline_r:
 		if b == '\n' {
-			return s.line(), true
+			return s.line()
 		} else if b == '\r' {
 			s.state = newline_n
 		} else {
 			// Invalid, reset parser.
 			s.state = priStart
 		}
-		return "", false
 	case newline_n:
 		if b == '\n' {
-			return s.line(), true
+			return s.line()
 		}
 		s.state = priStart
-		return "", false
 	}
 
 	return "", false
 }
 
-func (s *SyslogDelimiterFSM) line() string {
-	s.firstMatched = true
+// Vestige returns the bytes which have been pushed to SyslogDelimiter, since
+// the last Syslog message was returned, but only if the buffer appears
+// to be a valid syslog message.
+func (s *SyslogDelimiterFSM) Vestige() (string, bool) {
+	return "", false
+}
+
+func (s *SyslogDelimiterFSM) line() (string, bool) {
+	if !s.firstMatched {
+		// Actually, this is the first delimiter we've hit. Just hang onto it,
+		// and return to parsing.
+		s.firstMatched = true
+		return "", false
+	}
+
+	// Return everything in the buffer excluding the delimiter.
 	s.state = priStart
 
-	line := string(s.buffer[0 : len(s.buffer)-1])
-	s.buffer = nil
+	line := string(s.buffer[:len(s.buffer)-1-s.priLen-4])
+	s.buffer = s.buffer[len(s.buffer)-1-s.priLen-4:]
 
-	return strings.TrimRight(line, "\r")
+	return strings.TrimRight(line, "\r"), true
 }
 
 func isDigit(b byte) bool {
