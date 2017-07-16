@@ -1,6 +1,7 @@
 package input
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -22,10 +23,8 @@ func NewSyslogDelimiterFSM(maxSize int) *SyslogDelimiterFSM {
 // Push a byte into the SyslogDelimiterFSM. If the byte results in a
 // a new Syslog message, it'll be flagged via the bool.
 func (s *SyslogDelimiterFSM) Push(b byte) (string, bool) {
-	if !s.firstMatched && b != '<' {
-		return "", false
-	}
 	s.buffer = append(s.buffer, b)
+	fmt.Println(string(s.buffer), s.state)
 
 	switch s.state {
 	case priStart:
@@ -76,25 +75,15 @@ func (s *SyslogDelimiterFSM) Push(b byte) (string, bool) {
 		}
 	case postVersion:
 		if b == ' ' {
-			s.state = newline_r
+			s.state = newline
 		} else {
 			// Invalid, reset parser.
 			s.state = priStart
 		}
-	case newline_r:
-		if b == '\n' {
-			return s.line()
-		} else if b == '\r' {
-			s.state = newline_n
-		} else {
-			// Invalid, reset parser.
-			s.state = priStart
-		}
-	case newline_n:
+	case newline:
 		if b == '\n' {
 			return s.line()
 		}
-		s.state = priStart
 	}
 
 	return "", false
@@ -110,8 +99,11 @@ func (s *SyslogDelimiterFSM) Vestige() (string, bool) {
 func (s *SyslogDelimiterFSM) line() (string, bool) {
 	if !s.firstMatched {
 		// Actually, this is the first delimiter we've hit. Just hang onto it,
-		// and return to parsing.
+		// drop the characters preceding, and return to parsing.
+		//s.buffer = s.buffer[:len(s.buffer)-s.priLen-4]
+		fmt.Println("###1:", string(s.buffer), "###")
 		s.firstMatched = true
+		s.priLen = 0
 		return "", false
 	}
 
@@ -121,6 +113,7 @@ func (s *SyslogDelimiterFSM) line() (string, bool) {
 	line := string(s.buffer[:len(s.buffer)-1-s.priLen-4])
 	s.buffer = s.buffer[len(s.buffer)-1-s.priLen-4:]
 
+	s.priLen = 0
 	return strings.TrimRight(line, "\r"), true
 }
 
@@ -140,6 +133,5 @@ const (
 	priVal3
 	version
 	postVersion
-	newline_r
-	newline_n
+	newline
 )
