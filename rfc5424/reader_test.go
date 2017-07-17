@@ -64,7 +64,7 @@ func Test_ReaderEOF(t *testing.T) {
 	if err != io.EOF {
 		t.Fatalf("failed to receive EOF as expected")
 	}
-	if line != "\n<22>1 sshd is up" {
+	if line != "<22>1 sshd is up" {
 		t.Fatalf("returned line not correct after EOF, got %s", line)
 	}
 }

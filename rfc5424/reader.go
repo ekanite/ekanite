@@ -91,19 +91,18 @@ func (r *Reader) ReadLine() (string, error) {
 }
 
 func (r *Reader) line(stripDelim bool) string {
-	// Return everything in the buffer excluding the delimiter.
 	r.state = priStart
 
 	var line string
 	if stripDelim {
-		line = string(r.buf[:len(r.buf)-r.priLen-5])
+		line = string(r.buf[:len(r.buf)-r.priLen-4])
 	} else {
 		line = string(r.buf[:len(r.buf)])
 	}
-	r.buf = r.buf[len(r.buf)-r.priLen-5:]
+	r.buf = r.buf[len(r.buf)-r.priLen-4:]
 
 	r.priLen = 0
-	return strings.TrimRight(line, "\r")
+	return strings.TrimRight(line, "\r\n")
 }
 
 func isDigit(b byte) bool {
