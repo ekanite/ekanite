@@ -99,7 +99,7 @@ func (r *Reader) line(stripDelim bool) string {
 	} else {
 		line = string(r.buf[:len(r.buf)])
 	}
-	r.buf = r.buf[len(r.buf)-r.priLen-4:]
+	r.buf = r.buf[len(line):]
 
 	r.priLen = 0
 	return strings.TrimRight(line, "\r\n")
