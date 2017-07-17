@@ -6,22 +6,22 @@ import (
 	"testing"
 )
 
-func Test_NewReader(t *testing.T) {
-	r := NewReader(nil)
-	if r == nil {
+func Test_NewDelimiter(t *testing.T) {
+	d := NewDelimiter(nil)
+	if d == nil {
 		t.Fatal("failed to create simple reader")
 	}
 }
 
-func Test_ReaderSingle(t *testing.T) {
+func Test_DelimiterSingle(t *testing.T) {
 	liner := strings.NewReader("<11>1 sshd is down\n<22>1 sshd is up")
 
-	r := NewReader(liner)
-	if r == nil {
+	d := NewDelimiter(liner)
+	if d == nil {
 		t.Fatal("failed to create simple reader")
 	}
 
-	line, err := r.ReadLine()
+	line, err := d.ReadLine()
 	if err != nil {
 		t.Fatalf("failed to read line: %s", err.Error())
 	} else if line != "<11>1 sshd is down" {
@@ -29,15 +29,15 @@ func Test_ReaderSingle(t *testing.T) {
 	}
 }
 
-func Test_ReaderSinglePreceding(t *testing.T) {
+func Test_DelimiterSinglePreceding(t *testing.T) {
 	liner := strings.NewReader("xxyyy\n<11>1 sshd is down")
 
-	r := NewReader(liner)
-	if r == nil {
+	d := NewDelimiter(liner)
+	if d == nil {
 		t.Fatal("failed to create simple reader")
 	}
 
-	line, err := r.ReadLine()
+	line, err := d.ReadLine()
 	if err != nil {
 		t.Fatalf("failed to read line: %s", err.Error())
 	} else if line != "xxyyy" {
@@ -45,22 +45,22 @@ func Test_ReaderSinglePreceding(t *testing.T) {
 	}
 }
 
-func Test_ReaderEOF(t *testing.T) {
+func Test_DelimiterEOF(t *testing.T) {
 	liner := strings.NewReader("<11>1 sshd is down\n<22>1 sshd is up")
 
-	r := NewReader(liner)
-	if r == nil {
+	d := NewDelimiter(liner)
+	if d == nil {
 		t.Fatal("failed to create simple reader")
 	}
 
-	line, err := r.ReadLine()
+	line, err := d.ReadLine()
 	if err != nil {
 		t.Fatalf("failed to read line: %s", err.Error())
 	} else if line != "<11>1 sshd is down" {
 		t.Fatalf("read line not correct, got %s, exp %s", line, "<11>1 sshd is down")
 	}
 
-	line, err = r.ReadLine()
+	line, err = d.ReadLine()
 	if err != io.EOF {
 		t.Fatalf("failed to receive EOF as expected")
 	}
@@ -69,7 +69,7 @@ func Test_ReaderEOF(t *testing.T) {
 	}
 }
 
-func Test_ReaderMulti(t *testing.T) {
+func Test_DelimiterMulti(t *testing.T) {
 	tests := []struct {
 		name     string
 		line     string
@@ -103,11 +103,11 @@ func Test_ReaderMulti(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		r := NewReader(strings.NewReader(tt.line))
+		d := NewDelimiter(strings.NewReader(tt.line))
 		events := []string{}
 
 		for {
-			l, err := r.ReadLine()
+			l, err := d.ReadLine()
 			if err != nil && err != io.EOF {
 				t.Fatalf("error reading lines: %s", err.Error())
 			}
@@ -130,7 +130,7 @@ func Test_ReaderMulti(t *testing.T) {
 	}
 }
 
-func Test_ReaderReal(t *testing.T) {
+func Test_DelimiterReal(t *testing.T) {
 	tests := []struct {
 		name     string
 		line     string
@@ -152,11 +152,11 @@ func Test_ReaderReal(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		r := NewReader(strings.NewReader(tt.line))
+		d := NewDelimiter(strings.NewReader(tt.line))
 		events := []string{}
 
 		for {
-			l, err := r.ReadLine()
+			l, err := d.ReadLine()
 			if err != nil && err != io.EOF {
 				t.Fatalf("error reading lines: %s", err.Error())
 			}

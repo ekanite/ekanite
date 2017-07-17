@@ -6,102 +6,102 @@ import (
 	"strings"
 )
 
-type Reader struct {
+type Delimiter struct {
 	r      *bufio.Reader
 	buf    []byte
 	priLen int
 	state  fsmState
 }
 
-func NewReader(r io.Reader) *Reader {
-	return &Reader{
+func NewDelimiter(r io.Reader) *Delimiter {
+	return &Delimiter{
 		r: bufio.NewReader(r),
 	}
 }
 
-func (r *Reader) ReadLine() (string, error) {
+func (d *Delimiter) ReadLine() (string, error) {
 	for {
-		b, err := r.r.ReadByte()
+		b, err := d.r.ReadByte()
 		if err != nil {
-			return r.line(false), err
+			return d.line(false), err
 		}
-		r.buf = append(r.buf, b)
+		d.buf = append(d.buf, b)
 
-		switch r.state {
+		switch d.state {
 		case newline:
 			if b == '\n' {
-				r.state = priStart
+				d.state = priStart
 			}
 		case priStart:
 			if b == '<' {
-				r.state = priVal0
+				d.state = priVal0
 			}
 		case priVal0:
 			if isDigit(b) {
-				r.priLen = 1
-				r.state = priVal1
+				d.priLen = 1
+				d.state = priVal1
 			} else {
 				// Invalid, reset parser.
-				r.state = priStart
+				d.state = priStart
 			}
 		case priVal1:
 			if isDigit(b) {
-				r.priLen = 2
-				r.state = priVal2
+				d.priLen = 2
+				d.state = priVal2
 			} else if b == '>' {
-				r.state = version
+				d.state = version
 			}
 		case priVal2:
 			if isDigit(b) {
-				r.priLen = 3
-				r.state = priVal3
+				d.priLen = 3
+				d.state = priVal3
 			} else if b == '>' {
-				r.state = version
+				d.state = version
 			}
 		case priVal3:
 			if isDigit(b) {
-				r.priLen = 4
-				r.state = priEnd
+				d.priLen = 4
+				d.state = priEnd
 			} else if b == '>' {
-				r.state = version
+				d.state = version
 			}
 		case priEnd:
 			if b == '>' {
-				r.state = version
+				d.state = version
 			} else {
 				// Invalid, reset parser.
-				r.state = priStart
+				d.state = priStart
 			}
 		case version:
 			if isDigit(b) {
-				r.state = postVersion
+				d.state = postVersion
 			} else {
 				// Invalid, reset parser.
-				r.state = priStart
+				d.state = priStart
 			}
 		case postVersion:
 			if b == ' ' {
-				return r.line(true), nil
+				return d.line(true), nil
 			} else {
 				// Invalid, reset parser.
-				r.state = priStart
+				d.state = priStart
 			}
 		}
 	}
 }
 
-func (r *Reader) line(stripDelim bool) string {
-	r.state = priStart
+func (d *Delimiter) line(stripDelim bool) string {
+	d.state = priStart
 
 	var line string
 	if stripDelim {
-		line = string(r.buf[:len(r.buf)-r.priLen-4])
+		line = string(d.buf[:len(d.buf)-d.priLen-4])
 	} else {
-		line = string(r.buf[:len(r.buf)])
+		line = string(d.buf[:len(d.buf)])
 	}
-	r.buf = r.buf[len(line):]
+	d.buf = d.buf[len(line):]
 
-	r.priLen = 0
+	d.priLen = 0
 	return strings.TrimRight(line, "\r\n")
 }
 
