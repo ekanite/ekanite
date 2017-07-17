@@ -168,7 +168,7 @@ func Test_ReaderReal(t *testing.T) {
 		}
 
 		if len(events) != len(tt.expected) {
-			t.Errorf("test %s: failed to delimit (count) '%s' as expected %", tt.name, tt.line)
+			t.Errorf("test %s: failed to delimit (count) '%s' as expected", tt.name, tt.line)
 		} else {
 			for i := 0; i < len(events); i++ {
 				if events[i] != tt.expected[i] {
