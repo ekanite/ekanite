@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// Delimiter splits incoming data on RFC5424 headers.
 type Delimiter struct {
 	r      *bufio.Reader
 	buf    []byte
@@ -13,6 +14,7 @@ type Delimiter struct {
 	state  fsmState
 }
 
+// NewDelimiter returns an instance of a Delimiter.
 func NewDelimiter(r io.Reader) *Delimiter {
 	return &Delimiter{
 		r: bufio.NewReader(r),
