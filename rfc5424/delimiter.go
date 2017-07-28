@@ -21,6 +21,8 @@ func NewDelimiter(r io.Reader) *Delimiter {
 	}
 }
 
+// ReadLine() returns a line beginning with an RFC5424 header, and
+// terminated before the start of the next RFC5424 header.
 func (d *Delimiter) ReadLine() (string, error) {
 	for {
 		b, err := d.r.ReadByte()
