@@ -6,12 +6,14 @@ import (
 	"strconv"
 )
 
+// Reader wraps an io.Reader object and returns valid RFC5424 log messages.
 type Reader struct {
 	r io.Reader
 	d *Delimiter
 	p *Parser
 }
 
+// NewReader returns a Reader wrapping an io.Reader.
 func NewReader(rdr io.Reader) *Reader {
 	r := &Reader{
 		r: rdr,
@@ -22,6 +24,7 @@ func NewReader(rdr io.Reader) *Reader {
 	return r
 }
 
+// ReadLine returns the next valid RFC5424 log message.
 func (r *Reader) ReadLine() (string, error) {
 	return "", nil
 }
