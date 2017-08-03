@@ -29,10 +29,13 @@ func (r *Reader) ReadLine() (string, error) {
 	return "", nil
 }
 
+// Parser parses an RFC5424-compliant log message.
 type Parser struct {
 	matcher *regexp.Regexp
 }
 
+
+// NewParser returns an instance of a Parser.
 func NewParser() *Parser {
 	p := &Parser{}
 	p.compileMatcher()
