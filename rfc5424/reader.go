@@ -34,7 +34,6 @@ type Parser struct {
 	matcher *regexp.Regexp
 }
 
-
 // NewParser returns an instance of a Parser.
 func NewParser() *Parser {
 	p := &Parser{}
