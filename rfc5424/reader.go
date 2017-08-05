@@ -41,6 +41,8 @@ func NewParser() *Parser {
 	return p
 }
 
+// compileMatcher compiles the regex for RFC5424 log messages. If it fails
+// to compile, it panics.
 func (p *Parser) compileMatcher() {
 	leading := `(?s)`
 	pri := `<([0-9]{1,3})>`
@@ -54,6 +56,7 @@ func (p *Parser) compileMatcher() {
 	p.matcher = regexp.MustCompile(leading + pri + ver + `\s` + ts + `\s` + host + `\s` + app + `\s` + pid + `\s` + id + `\s` + msg)
 }
 
+// parse attempts to parse the given byte slice.
 func (p *Parser) parse(raw []byte, result *map[string]interface{}) {
 	m := p.matcher.FindStringSubmatch(string(raw))
 	if m == nil || len(m) != 9 {
