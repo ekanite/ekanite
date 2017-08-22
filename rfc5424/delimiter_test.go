@@ -14,6 +14,7 @@ func Test_NewDelimiter(t *testing.T) {
 	}
 }
 
+// Test_DelimiterSingle tests if a string is correctly delimited into a single event.
 func Test_DelimiterSingle(t *testing.T) {
 	liner := strings.NewReader("<11>1 sshd is down\n<22>1 sshd is up")
 
