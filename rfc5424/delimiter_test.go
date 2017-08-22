@@ -6,6 +6,7 @@ import (
 	"testing"
 )
 
+// Test_NewDelimiter simply tests if a delimiter can be instantiated.
 func Test_NewDelimiter(t *testing.T) {
 	d := NewDelimiter(nil)
 	if d == nil {
