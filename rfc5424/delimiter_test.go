@@ -31,6 +31,7 @@ func Test_DelimiterSingle(t *testing.T) {
 	}
 }
 
+// Test_DelimiterSinglePreceding tests delimiting with an incomplete preceding log line.
 func Test_DelimiterSinglePreceding(t *testing.T) {
 	liner := strings.NewReader("xxyyy\n<11>1 sshd is down")
 
