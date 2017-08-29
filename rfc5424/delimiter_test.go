@@ -48,6 +48,7 @@ func Test_DelimiterSinglePreceding(t *testing.T) {
 	}
 }
 
+// Test_DelimiterEOF tests handling of data that doesn't end with a delimiter.
 func Test_DelimiterEOF(t *testing.T) {
 	liner := strings.NewReader("<11>1 sshd is down\n<22>1 sshd is up")
 
