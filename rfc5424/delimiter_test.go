@@ -73,6 +73,7 @@ func Test_DelimiterEOF(t *testing.T) {
 	}
 }
 
+// Test_DelimiterMulti tests delimiting multiple events from input.
 func Test_DelimiterMulti(t *testing.T) {
 	tests := []struct {
 		name     string
