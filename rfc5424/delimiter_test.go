@@ -135,6 +135,7 @@ func Test_DelimiterMulti(t *testing.T) {
 	}
 }
 
+// Test_DelimiterReal test delimiting with real log lines.
 func Test_DelimiterReal(t *testing.T) {
 	tests := []struct {
 		name     string
