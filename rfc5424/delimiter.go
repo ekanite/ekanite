@@ -96,6 +96,8 @@ func (d *Delimiter) ReadLine() (string, error) {
 	}
 }
 
+// line returns the line in the current buffer. The returned string is then removed
+// from the buffer.
 func (d *Delimiter) line(stripDelim bool) string {
 	d.state = priStart
 
