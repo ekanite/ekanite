@@ -1,3 +1,4 @@
+// Package rfc5424 is a state-machine parser of RFC5424-formatted log lines.
 package rfc5424
 
 import (
