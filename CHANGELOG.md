@@ -1,4 +1,6 @@
 ## 1.3.0 (November 26th 2017)
+With this release, Ekanite is moving to Go 1.9.1.
+
 - [PR #81](https://github.com/ekanite/ekanite/pull/81): Close engine on exit.
 - [PR #82](https://github.com/ekanite/ekanite/pull/82): Name shards so that they are always loaded correctly on restart. 
 
