@@ -1,4 +1,4 @@
-## 2.0.0 (unreleased)
+## 1.3.0 (November 26th 2017)
 - [PR #81](https://github.com/ekanite/ekanite/pull/81): Close engine on exit.
 - [PR #82](https://github.com/ekanite/ekanite/pull/82): Name shards so that they are always loaded correctly on restart. 
 
