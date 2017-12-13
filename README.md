@@ -35,7 +35,7 @@ Consult the RFC to learn what each of these fields is. The TIMESTAMP field must 
 ```
 # Send messages to Ekanite over TCP using the template. Assumes Ekanite is listening on 127.0.0.1:5514
 $template Ekanite,"<%pri%>%protocol-version% %timestamp:::date-rfc3339% %HOSTNAME% %app-name% %procid% - %msg%\n"
-*.*             @@127.0.0.1:5514;EkaniteFormat
+*.*             @@127.0.0.1:5514;Ekanite
 ```
 Add this template to `/etc/rsyslog.d/23-ekanite.conf` and then restart rsyslog using the command `sudo service rsyslog restart`.
 
