@@ -359,10 +359,7 @@ func (s *Shard) Open() error {
 
 // Close closes the shard.
 func (s *Shard) Close() error {
-	if err := s.b.Close(); err != nil {
-		return err
-	}
-	return nil
+	return s.b.Close()
 }
 
 // Index indexes a slice of Documents into the shard.
@@ -375,11 +372,7 @@ func (s *Shard) Index(documents []Document) error {
 		}
 		batch.SetInternal([]byte(d.ID()), d.Source())
 	}
-	if err := s.b.Batch(batch); err != nil {
-		return err
-	}
-
-	return nil
+	return s.b.Batch(batch)
 }
 
 // Total returns the number of events in the shard.
