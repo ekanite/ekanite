@@ -88,7 +88,7 @@ func (d *Delimiter) ReadLine() (string, error) {
 		case postVersion:
 			if b == ' ' {
 				return d.line(true), nil
-			} else {
+			}
 			// Invalid, reset parser.
 			d.state = priStart
 		}
