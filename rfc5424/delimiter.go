@@ -21,7 +21,7 @@ func NewDelimiter(r io.Reader) *Delimiter {
 	}
 }
 
-// ReadLine() returns a line beginning with an RFC5424 header, and includes
+// ReadLine returns a line beginning with an RFC5424 header, and includes
 // all characters up to and including the last character before the start
 // of the next RFC5424 header. Any trailing newline characters are stripped
 // from the line before it is returned.
