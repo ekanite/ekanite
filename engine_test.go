@@ -40,7 +40,7 @@ func TestBatcher_SingleEvent(t *testing.T) {
 		t.Fatalf("failed to send single event: %s", err.Error())
 	}
 
-	if i.BatchesRx != 1 || i.EventsRx != 1 {
+	if i.BatchesRx != 1 || i.EventsRx != 12 {
 		t.Fatalf("indexer failed to receive correct number of events: batches: %d, events: %d", i.BatchesRx, i.EventsRx)
 	}
 }
