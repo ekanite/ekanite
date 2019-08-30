@@ -62,7 +62,7 @@ With these changes in place rsyslog or syslog-ng will continue to send logs to a
 
 Searching the logs
 ------------
-Search support is pretty simple at the moment. You have two options -- a simple telnet-like interface, and a browser-based interface.
+Search support is pretty simple at the moment. You have two options -- a simple telnet-like interface, and a browser-based query interface.
 
 ### Telnet interface
 
