@@ -7,7 +7,7 @@ import (
 
 const (
 	// SYSLOG_DELIMITER indicates the start of a syslog line
-	SYSLOG_DELIMITER = `<[0-9]{1,3}>[0-9]\s`
+	SYSLOG_DELIMITER = `<[0-9]{1,3}>`
 )
 
 var syslogRegex *regexp.Regexp

@@ -101,6 +101,14 @@ The browser-based interface also accepts bleve-style queries, identical to those
 ## Diagnostics
 Basic statistics and diagnostics are available. Visit `http://localhost:9951/debug/vars` to retrieve this information. The host and port can be changed via the `-diag` command-line option.
 
+## Building New Parsers
+The architecture now supports the easy implementation of new parsers beyond the stock syslog in 3 easy steps:
+
+1. In `input/parser.go` expand supportedFormats() to capture the additional _standard_ and _name_.
+1. In `parser/`, create the new input format parser using appropriate regex statements.
+    - Ensure that the new parser includes a `timestamp` field compatible with RFC3339, e.g. `2006-01-02T15:04:05Z07:00` 
+1. Back in `input/parser.go`, update NewParser() to properly instantiate the new input format parser.
+
 ## Project Status
 The project is semi-maintained -- contributions in the form of bug reports and pull requests are welcome. Much work remains around performance and scaling, and you can check out [the issues](https://github.com/ekanite/ekanite/issues) for more details.
 

@@ -7,6 +7,7 @@ import (
 	"expvar"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"strings"
 	"sync/atomic"
@@ -106,6 +107,7 @@ func (s *TCPCollector) Addr() net.Addr {
 }
 
 func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
+	log.Println("Handling a Connection...")
 	stats.Add("tcpConnections", 1)
 	defer func() {
 		stats.Add("tcpConnections", -1)
