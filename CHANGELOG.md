@@ -1,5 +1,6 @@
 ## 1.4.0 (unreleased)
 - [PR #95](https://github.com/ekanite/ekanite/pull/95): Refactor for multiple parsers. Thanks @jweisscrypto
+- [PR #97](https://github.com/ekanite/ekanite/pull/97): Enable 'go mod' support via Go 1.13.
 
 ## 1.3.0 (November 26th 2017)
 With this release, Ekanite is moving to Go 1.9.1.
