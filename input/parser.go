@@ -36,11 +36,8 @@ func supportedFormats() [][]string {
 
 // ValidFormat returns if the given format matches one of the possible formats.
 func ValidFormat(f string) bool {
-	l := len(supportedFormats())
-	fmts := supportedFormats()
-
-	for i := 0; i < l; i++ {
-		if fmts[i][0] == f {
+	for _, v := range supportedFormats() {
+		if v[0] == f || v[1] == f {
 			return true
 		}
 	}
@@ -56,10 +53,12 @@ func NewParser(f string) (*LogHandler, error) {
 
 	var p = &LogHandler{}
 
-	if f == RFC5424Name {
+	if f == RFC5424Name || f == RFC5424Standard {
 		p.Parser = &parser.RFC5424{}
-	} else if f == WatchguardName {
+		p.Fmt = RFC5424Standard
+	} else if f == WatchguardName || f == WatchguardFirebox {
 		p.Parser = &parser.Watchguard{}
+		p.Fmt = WatchguardFirebox
 	}
 
 	log.Printf("input format parser created for %s", f)
