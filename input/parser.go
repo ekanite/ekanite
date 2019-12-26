@@ -26,7 +26,7 @@ type LogHandler struct {
 	Raw    []byte
 	Result map[string]interface{}
 	Parser LogParser
-	Stats func(key string, delta int64)
+	Stats  func(key string, delta int64)
 }
 
 func supportedFormats() [][]string {

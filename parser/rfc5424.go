@@ -9,7 +9,7 @@ type RFC5424 struct {
 	matcher *regexp.Regexp
 }
 
-var rfc5424Stats = func(key string, delta int64){}
+var rfc5424Stats = func(key string, delta int64) {}
 
 func (p *RFC5424) Stats(callback func(key string, delta int64)) {
 	rfc5424Stats = callback

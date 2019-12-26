@@ -9,7 +9,7 @@ type Watchguard struct {
 	matcher *regexp.Regexp
 }
 
-var watchguardStats = func(key string, delta int64){}
+var watchguardStats = func(key string, delta int64) {}
 
 func (p *Watchguard) Stats(callback func(key string, delta int64)) {
 	watchguardStats = callback
