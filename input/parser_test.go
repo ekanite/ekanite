@@ -7,23 +7,24 @@ import (
 )
 
 func Test_Formats(t *testing.T) {
-	var p *Parser
+	var p *LogHandler
 	mismatched := func(rtrnd string, intnd string, intndA string) {
 		if intndA != "" {
 			t.Fatalf("Parser format %v does not match the intended format %v.\n", rtrnd, intnd)
 		}
 		t.Fatalf("Parser format %v does not match the intended format %v (same as: %v).\n", rtrnd, intndA, intnd)
 	}
-	for i, f := range fmtsByName {
-		p, _ = NewParser(f)
-		if p.fmt != fmtsByStandard[i] {
-			mismatched(p.fmt, f, fmtsByStandard[i])
+
+	for _, f := range supportedFormats() {
+		p, _ = NewParser(f[0])
+		if p.Fmt != f[1] {
+			mismatched(p.Fmt, f[0], f[1])
 		}
 	}
-	for _, f := range fmtsByStandard {
-		p, _ = NewParser(f)
-		if p.fmt != f {
-			mismatched(p.fmt, f, "")
+	for _, f := range supportedFormats() {
+		p, _ = NewParser(f[1])
+		if p.Fmt != f[1] {
+			mismatched(p.Fmt, f[1], "")
 		}
 	}
 	p, err := NewParser("unknown-format")
