@@ -15,7 +15,7 @@ func (p *RFC5424) Stats(callback func(key string, delta int64)) {
 	rfc5424Stats = callback
 }
 
-func (p *RFC5424) CompileMatcher() {
+func (p *RFC5424) Init() {
 	leading := `(?s)`
 	pri := `<([0-9]{1,3})>`
 	ver := `([0-9])`

@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"fmt"
-	"log"
 	"regexp"
 	"strconv"
 )
@@ -22,7 +20,7 @@ func (p *Watchguard) Stats(callback func(key string, delta int64)) {
 //
 //([ADFJMNOS][a-z]{2}\s[0-9]{1,2}\s[0-2][0-9]:[0-5]?[0-9]:[0-5]?[0-9])\s([^ ]+)\s([^ ]+)\s\(([^ ]+)\)\s([^ ]+)\smsg_id=\"([0-9\-]+)\"\s([^ ]+)\s([^ ]+)\s([^ ]+)\s(.+$)
 //
-func (p *Watchguard) CompileMatcher() {
+func (p *Watchguard) Init() {
 	leading := `(?s)`
 	pri := `<([0-9]{1,3})>`
 	local_dtg := `([ADFJMNOS][a-z]{2}\s[0-9]{1,2}\s[0-2][0-9]:[0-5]?[0-9]:[0-5]?[0-9])`
@@ -42,9 +40,6 @@ func (p *Watchguard) CompileMatcher() {
 }
 
 func (p *Watchguard) Parse(raw []byte, result *map[string]interface{}) {
-
-	log.Println(fmt.Sprintf("%s", string(raw)))
-
 	m := p.matcher.FindStringSubmatch(string(raw))
 	if m == nil || len(m) != 12 {
 		watchguardStats("WatchguardM200Unparsed", 1)

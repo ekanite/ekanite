@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	Rfc5424Standard   = "RFC5424"
-	Rfc5424Name       = "syslog"
+	RFC5424Standard   = "RFC5424"
+	RFC5424Name       = "syslog"
 	WatchguardFirebox = "Watchguard"
 	WatchguardName    = "M200"
 )
@@ -17,7 +17,7 @@ type StatsCollector func(key string, delta int64)
 
 type LogParser interface {
 	Parse(raw []byte, result *map[string]interface{})
-	CompileMatcher()
+	Init()
 }
 
 // A Parser parses the raw input as a map with a timestamp field.
@@ -30,13 +30,12 @@ type LogHandler struct {
 }
 
 func supportedFormats() [][]string {
-	return [][]string{{Rfc5424Name, Rfc5424Standard},
+	return [][]string{{RFC5424Name, RFC5424Standard},
 		{WatchguardName, WatchguardFirebox}}
 }
 
 // ValidFormat returns if the given format matches one of the possible formats.
 func ValidFormat(f string) bool {
-
 	l := len(supportedFormats())
 	fmts := supportedFormats()
 
@@ -57,17 +56,15 @@ func NewParser(f string) (*LogHandler, error) {
 
 	var p = &LogHandler{}
 
-	if f == Rfc5424Name {
+	if f == RFC5424Name {
 		p.Parser = &parser.RFC5424{}
 	} else if f == WatchguardName {
 		p.Parser = &parser.Watchguard{}
-	} else {
-		panic(fmt.Sprintf("no supported parser for input format %s", f))
 	}
 
 	log.Printf("input format parser created for %s", f)
 	p.Stats = stats.Add
-	p.Parser.CompileMatcher()
+	p.Parser.Init()
 	return p, nil
 }
 
