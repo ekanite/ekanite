@@ -9,6 +9,8 @@ cmd/ekanited/ekanited
 # Folders
 _obj
 _test
+**/.DS_Store
+.idea
 
 # Architecture specific extensions/prefixes
 *.[568vq]

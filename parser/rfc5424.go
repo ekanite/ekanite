@@ -1,21 +1,21 @@
-package input
+package parser
 
 import (
 	"regexp"
 	"strconv"
 )
 
-// RFC5424 represents a parser for RFC5424-compliant log messages
 type RFC5424 struct {
 	matcher *regexp.Regexp
 }
 
-func (p *Parser) newRFC5424Parser() {
-	p.rfc5424 = &RFC5424{}
-	p.rfc5424.compileMatcher()
+var rfc5424Stats = func(key string, delta int64){}
+
+func (p *RFC5424) Stats(callback func(key string, delta int64)) {
+	rfc5424Stats = callback
 }
 
-func (s *RFC5424) compileMatcher() {
+func (p *RFC5424) Init() {
 	leading := `(?s)`
 	pri := `<([0-9]{1,3})>`
 	ver := `([0-9])`
@@ -25,16 +25,16 @@ func (s *RFC5424) compileMatcher() {
 	pid := `(-|[0-9]{1,5})`
 	id := `([\w-]+)`
 	msg := `(.+$)`
-	s.matcher = regexp.MustCompile(leading + pri + ver + `\s` + ts + `\s` + host + `\s` + app + `\s` + pid + `\s` + id + `\s` + msg)
+	p.matcher = regexp.MustCompile(leading + pri + ver + `\s` + ts + `\s` + host + `\s` + app + `\s` + pid + `\s` + id + `\s` + msg)
 }
 
-func (s *RFC5424) parse(raw []byte, result *map[string]interface{}) {
-	m := s.matcher.FindStringSubmatch(string(raw))
+func (p *RFC5424) Parse(raw []byte, result *map[string]interface{}) {
+	m := p.matcher.FindStringSubmatch(string(raw))
 	if m == nil || len(m) != 9 {
-		stats.Add("rfc5424Unparsed", 1)
+		rfc5424Stats("rfc5424Unparsed", 1)
 		return
 	}
-	stats.Add("rfc5424Parsed", 1)
+	rfc5424Stats("rfc5424Parsed", 1)
 	pri, _ := strconv.Atoi(m[1])
 	ver, _ := strconv.Atoi(m[2])
 	var pid int
