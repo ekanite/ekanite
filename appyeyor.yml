@@ -1,0 +1,27 @@
+version: 5.{build}
+
+platform: x64
+
+clone_folder: c:\gopath\src\github.com\ekanite\ekanite
+
+environment:
+  GOPATH: c:\gopath
+
+install:
+  - set BUILD_ENV=gnu
+  - if %BUILD_ENV%==gnu  set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin\;%PATH%
+  - if %BUILD_ENV%==gnu  set MSYSTEM=MINGW64
+  - if %BUILD_ENV%==gnu  set MSYS=winsymlinks=lnk
+
+build_script:
+  - go version
+  - go get ./...
+  - go build -i ./...
+  - go test -v ./...
+
+after_build:
+  - 7z a ekanite-latest-win64.zip %GOPATH%\bin\ekanited.exe
+
+artifacts:
+  - path: ekanite-latest-win64.zip
+    name: ekanite for Windows x64
