@@ -110,5 +110,5 @@ The architecture now supports the easy implementation of new parsers beyond the 
 1. Back in `input/parser.go`, update NewParser() to properly instantiate the new input format parser.
 
 ## Project Status
-The project is semi-maintained -- contributions in the form of bug reports and pull requests are welcome. Much work remains around performance and scaling, and you can check out [the issues](https://github.com/ekanite/ekanite/issues) for more details.
+The project is not actively maintained, though development may re-occur in the future.
 
